@@ -1,10 +1,19 @@
 #include "MeshHandler.hpp"
 
+#include <stdexcept>
+
 #include "Renderer.hpp"
+
+constexpr size_t MAX_MESHES = 1024 * 1024;
 namespace vkr {
-MeshHandler::MeshHandler(Renderer& render) : render(render) {}
+MeshHandler::MeshHandler(Renderer& render) : render(render) {
+    meshes.reserve(MAX_MESHES);
+}
 MeshHandler::~MeshHandler() { render.destroyMesh(buffer); }
 MeshHandle* MeshHandler::allocateMesh(const MeshData& data) {
+    if (meshes.size() == MAX_MESHES) {
+        throw std::runtime_error("Cannot allocate more meshes");
+    }
     MeshHandle handle;
     handle.firstVertex = this->data.vertices.size();
     handle.firstIndex = this->data.indices.size();
@@ -17,10 +26,11 @@ MeshHandle* MeshHandler::allocateMesh(const MeshData& data) {
                               data.indices.end());
     meshes.push_back(handle);
 
-    return &meshes[meshes.size() - 1];
+    return meshes.data() + meshes.size() - 1;
 }
 void MeshHandler::clear() {
     meshes.clear();
+    meshes.reserve(MAX_MESHES);
     data.vertices.clear();
     data.indices.clear();
 

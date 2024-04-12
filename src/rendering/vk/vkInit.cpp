@@ -24,11 +24,15 @@ bool vk::initSystem(vkSystem& system, SDL_Window* win) {
     features12.bufferDeviceAddress = true;
     features12.descriptorIndexing = true;
 
+    VkPhysicalDeviceFeatures features10{};
+    features10.multiDrawIndirect = true;
+
     vkb::PhysicalDeviceSelector selector{vkb_inst};
     vkb::PhysicalDevice physicalDevice =
         selector.set_minimum_version(1, 3)
             .set_required_features_13(features)
             .set_required_features_12(features12)
+            .set_required_features(features10)
             .set_surface(system.surface)
             .select()
             .value();

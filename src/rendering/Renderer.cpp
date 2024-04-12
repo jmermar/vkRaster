@@ -66,64 +66,42 @@ Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
                       VMA_MEMORY_USAGE_GPU_ONLY, VK_IMAGE_ASPECT_DEPTH_BIT);
 
     initDescriptorSets();
-    initRenderPipeline();
-}
-
-void Renderer::initRenderPipeline() {
-    auto device = system.get().device;
-
-    VkShaderModule triangleFragShader =
-        vk::loadShaderModule(RESPATH "/shaders/test.frag.spv", device);
-
-    VkShaderModule triangleVertexShader =
-        vk::loadShaderModule(RESPATH "/shaders/test.vert.spv", device);
-
-    VkPushConstantRange bufferRange{};
-    bufferRange.offset = 0;
-    bufferRange.size = sizeof(GPUDrawPushConstants);
-    bufferRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-    VkPipelineLayoutCreateInfo pipeline_layout_info =
-        vk::pipelineLayoutCreateInfo();
-    pipeline_layout_info.pPushConstantRanges = &bufferRange;
-    pipeline_layout_info.pushConstantRangeCount = 1;
-
-    vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr,
-                           &trianglePipelineLayout);
-
-    vk::PipelineBuilder pipelineBuilder;
-
-    // use the triangle layout we created
-    pipelineBuilder._pipelineLayout = trianglePipelineLayout;
-    // connecting the vertex and pixel shaders to the pipeline
-    pipelineBuilder.setShaders(triangleVertexShader, triangleFragShader);
-    // it will draw triangles
-    pipelineBuilder.setInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-    // filled triangles
-    pipelineBuilder.setPolygonMode(VK_POLYGON_MODE_FILL);
-    // no backface culling
-    pipelineBuilder.setCullMode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
-    // no multisampling
-    pipelineBuilder.setMultisamplingNone();
-    // no blending
-    pipelineBuilder.disableBlending();
-    // no depth testing
-    pipelineBuilder.enableDepthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
-    pipelineBuilder.setDepthFormat(depthImage.imageFormat);
-
-    // connect the image format we will draw into, from draw image
-    pipelineBuilder.setColorAttachmentFormat(drawImage.imageFormat);
-    pipelineBuilder.setDepthFormat(depthImage.imageFormat);
-
-    // finally build the pipeline
-    trianglePipeline = pipelineBuilder.buildPipeline(device);
-
-    // clean structures
-    vkDestroyShaderModule(device, triangleFragShader, nullptr);
-    vkDestroyShaderModule(device, triangleVertexShader, nullptr);
+    unlitRenderer.initPipeline();
 }
 
 void Renderer::initSubmit() {}
+
+vk::AllocatedBuffer Renderer::uploadBuffer(void* data, size_t size,
+                                           VkBufferUsageFlags usage) {
+    const auto allocator = system.get().allocator;
+    const auto device = system.get().device;
+    vk::AllocatedBuffer newBuffer =
+        vk::createBuffer(allocator, size,
+                         usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+                             VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+                         VMA_MEMORY_USAGE_GPU_ONLY);
+
+    vk::AllocatedBuffer staging =
+        vk::createBuffer(allocator, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                         VMA_MEMORY_USAGE_CPU_ONLY);
+
+    void* mapData = 0;
+    vmaMapMemory(allocator, staging.allocation, &mapData);
+
+    memcpy(mapData, data, size);
+    vmaUnmapMemory(allocator, staging.allocation);
+
+    submitter.immediateSubmit([&](VkCommandBuffer cmd) {
+        VkBufferCopy copy{0};
+        copy.dstOffset = 0;
+        copy.srcOffset = 0;
+        copy.size = size;
+
+        vkCmdCopyBuffer(cmd, staging.buffer, newBuffer.buffer, 1, &copy);
+    });
+    vmaDestroyBuffer(allocator, staging.buffer, staging.allocation);
+    return newBuffer;
+}
 
 GPUMesh Renderer::uploadMesh(const MeshData& meshData) {
     auto& vertices = meshData.vertices;
@@ -192,56 +170,6 @@ GPUMesh Renderer::uploadMesh(const MeshData& meshData) {
     return newSurface;
 }
 
-void Renderer::drawTriangle(VkCommandBuffer cmd) {
-    // begin a render pass  connected to our draw image
-    VkRenderingAttachmentInfo colorAttachment = vk::attachmentInfo(
-        drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_GENERAL);
-    VkRenderingAttachmentInfo depthAttachment = vk::depthAttachmentInfo(
-        depthImage.imageView, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
-
-    VkRenderingInfo renderInfo =
-        vk::renderingInfo({.width = screenSize.w, .height = screenSize.h},
-                          &colorAttachment, &depthAttachment);
-    vkCmdBeginRendering(cmd, &renderInfo);
-
-    vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, trianglePipeline);
-
-    // set dynamic viewport and scissor
-    VkViewport viewport = {};
-    viewport.x = 0;
-    viewport.y = 0;
-    viewport.width = (float)screenSize.w;
-    viewport.height = (float)screenSize.h;
-    viewport.minDepth = 0.f;
-    viewport.maxDepth = 1.f;
-
-    vkCmdSetViewport(cmd, 0, 1, &viewport);
-
-    VkRect2D scissor = {};
-    scissor.offset.x = 0;
-    scissor.offset.y = 0;
-    scissor.extent.width = screenSize.w;
-    scissor.extent.height = screenSize.h;
-
-    vkCmdSetScissor(cmd, 0, 1, &scissor);
-
-    auto& buffer = meshHandler.getMesh();
-
-    GPUDrawPushConstants push_constatns;
-    push_constatns.worldMatrix = glm::mat4(1);
-    push_constatns.vertexBuffer = buffer.vertexBufferAddr;
-    vkCmdPushConstants(cmd, trianglePipelineLayout, VK_SHADER_STAGE_VERTEX_BIT,
-                       0, sizeof(GPUDrawPushConstants), &push_constatns);
-    vkCmdBindIndexBuffer(cmd, buffer.indexBuffer.buffer, 0,
-                         VK_INDEX_TYPE_UINT32);
-
-    for (const auto& mesh : meshHandler.meshes) {
-        vkCmdDrawIndexed(cmd, mesh.numIndex, 1, mesh.firstIndex,
-                         mesh.firstVertex, 0);
-    }
-    vkCmdEndRendering(cmd);
-}
-
 void Renderer::drawBackground(VkCommandBuffer buffer) {
     VkClearColorValue clearValue;
     float flash = abs(sin(frameCounter / 120.f));
@@ -263,9 +191,6 @@ Renderer::~Renderer() {
 
     globalDescriptorAllocator.destroyPool(system.get().device);
 
-    vkDestroyPipelineLayout(system.get().device, trianglePipelineLayout,
-                            nullptr);
-    vkDestroyPipeline(system.get().device, trianglePipeline, nullptr);
     vk::freeImage(depthImage, system.get().device, system.get().allocator);
     vk::freeImage(drawImage, system.get().device, system.get().allocator);
 }
@@ -314,7 +239,7 @@ void Renderer::render() {
                                 VK_IMAGE_LAYOUT_GENERAL,
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-    drawTriangle(buffer);
+    unlitRenderer.draw(buffer);
 
     // transtion the draw image and the swapchain image into their correct
     // transfer layouts
@@ -368,6 +293,11 @@ void Renderer::destroyMesh(GPUMesh& mesh) {
     frameData.getFrame(frameCounter + 1).deletion.addBuffer(mesh.vertexBuffer);
     mesh.indexBuffer = {0, 0, 0};
     mesh.vertexBuffer = {0, 0, 0};
+}
+
+void Renderer::destroyBuffer(vk::AllocatedBuffer& buffer) {
+    frameData.getFrame(frameCounter + 1).deletion.addBuffer(buffer);
+    buffer = {0, 0, 0};
 }
 
 void Renderer::initDescriptorSets() {
