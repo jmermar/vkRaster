@@ -59,6 +59,12 @@ RendererImp::RendererImp(SDL_Window* window, uint32_t w, uint32_t h)
             VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
 
+    vk::allocateImage(depthImage, device, system.get().allocator,
+                      {.width = w, .height = h, .depth = 1},
+                      VK_FORMAT_D32_SFLOAT,
+                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                      VMA_MEMORY_USAGE_GPU_ONLY, VK_IMAGE_ASPECT_DEPTH_BIT);
+
     initDescriptorSets();
     initRenderPipeline();
 }
@@ -102,11 +108,12 @@ void RendererImp::initRenderPipeline() {
     // no blending
     pipelineBuilder.disableBlending();
     // no depth testing
-    pipelineBuilder.disableDepthtest();
+    pipelineBuilder.enableDepthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
+    pipelineBuilder.setDepthFormat(depthImage.imageFormat);
 
     // connect the image format we will draw into, from draw image
     pipelineBuilder.setColorAttachmentFormat(drawImage.imageFormat);
-    pipelineBuilder.setDepthFormat(VK_FORMAT_UNDEFINED);
+    pipelineBuilder.setDepthFormat(depthImage.imageFormat);
 
     // finally build the pipeline
     trianglePipeline = pipelineBuilder.buildPipeline(device);
@@ -118,8 +125,13 @@ void RendererImp::initRenderPipeline() {
 
 void RendererImp::initSubmit() {}
 
-GPUMesh RendererImp::uploadMesh(const std::vector<uint32_t>& indices,
-                                const std::vector<Vertex>& vertices) {
+GPUMesh* RendererImp::uploadMesh(const std::string& name,
+                                 const std::vector<uint32_t>& indices,
+                                 const std::vector<Vertex>& vertices) {
+    if (meshes.contains(name)) {
+        throw std::runtime_error("Already a mesh with that name");
+    }
+
     const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
     const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
     const auto allocator = system.get().allocator;
@@ -180,17 +192,20 @@ GPUMesh RendererImp::uploadMesh(const std::vector<uint32_t>& indices,
     vmaDestroyBuffer(allocator, staging.buffer, staging.allocation);
     newSurface.nVertices = vertices.size();
     newSurface.nIndices = indices.size();
-    return newSurface;
+    meshes[name] = newSurface;
+    return &(meshes[name]);
 }
 
 void RendererImp::drawTriangle(VkCommandBuffer cmd) {
     // begin a render pass  connected to our draw image
     VkRenderingAttachmentInfo colorAttachment = vk::attachmentInfo(
         drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_GENERAL);
+    VkRenderingAttachmentInfo depthAttachment = vk::depthAttachmentInfo(
+        depthImage.imageView, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
     VkRenderingInfo renderInfo =
         vk::renderingInfo({.width = screenSize.w, .height = screenSize.h},
-                          &colorAttachment, nullptr);
+                          &colorAttachment, &depthAttachment);
     vkCmdBeginRendering(cmd, &renderInfo);
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, trianglePipeline);
@@ -213,7 +228,7 @@ void RendererImp::drawTriangle(VkCommandBuffer cmd) {
     scissor.extent.height = screenSize.h;
 
     vkCmdSetScissor(cmd, 0, 1, &scissor);
-    for (auto& m : temp_drawMeshes) {
+    for (const auto [k, m] : meshes) {
         GPUDrawPushConstants push_constants;
         push_constants.worldMatrix = glm::mat4{1.f};
         push_constants.vertexBuffer = m.vertexBufferAddr;
@@ -226,7 +241,6 @@ void RendererImp::drawTriangle(VkCommandBuffer cmd) {
 
         vkCmdDrawIndexed(cmd, m.nIndices, 1, 0, 0, 0);
     }
-    temp_drawMeshes.clear();
     vkCmdEndRendering(cmd);
 }
 
@@ -254,7 +268,7 @@ RendererImp::~RendererImp() {
     vkDestroyPipelineLayout(system.get().device, trianglePipelineLayout,
                             nullptr);
     vkDestroyPipeline(system.get().device, trianglePipeline, nullptr);
-
+    vk::freeImage(depthImage, system.get().device, system.get().allocator);
     vk::freeImage(drawImage, system.get().device, system.get().allocator);
 }
 
@@ -292,6 +306,9 @@ void RendererImp::render() {
     vkCommands::transitionImage(buffer, drawImage.image,
                                 VK_IMAGE_LAYOUT_UNDEFINED,
                                 VK_IMAGE_LAYOUT_GENERAL);
+    vkCommands::transitionImage(buffer, depthImage.image,
+                                VK_IMAGE_LAYOUT_UNDEFINED,
+                                VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
     drawBackground(buffer);
 
@@ -348,9 +365,14 @@ void RendererImp::render() {
     frameCounter++;
 }
 
-void RendererImp::destroyMesh(GPUMesh& mesh) {
+void RendererImp::destroyMesh(const std::string& name) {
+    if (!meshes.contains(name)) {
+        throw new std::runtime_error("Cannot delete nonexisting mesh");
+    }
+    auto mesh = meshes[name];
     frameData.getFrame(frameCounter + 1).deletion.addBuffer(mesh.indexBuffer);
     frameData.getFrame(frameCounter + 1).deletion.addBuffer(mesh.vertexBuffer);
+    meshes.erase(name);
 }
 
 void RendererImp::initDescriptorSets() {

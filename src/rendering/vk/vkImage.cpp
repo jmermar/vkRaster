@@ -81,7 +81,7 @@ bool imageViewCreate(VkImageView& imageView, VkDevice device, VkFormat format,
 bool allocateImage(AllocatedImage& allocatedImage, VkDevice device,
                    VmaAllocator allocator, const VkExtent3D imageExtent,
                    VkFormat imageFormat, VkImageUsageFlags usage,
-                   VmaMemoryUsage memoryUsage) {
+                   VmaMemoryUsage memoryUsage, VkImageAspectFlags aspect) {
     VkExtent3D allocatedImageExtent = {imageExtent.width, imageExtent.height, 1};
 
     // hardcoding the draw format to 32 bit float
@@ -103,7 +103,7 @@ bool allocateImage(AllocatedImage& allocatedImage, VkDevice device,
 
     // build a image-view for the draw image to use for rendering
     imageViewCreate(allocatedImage.imageView, device, allocatedImage.imageFormat,
-                    allocatedImage.image, VK_IMAGE_ASPECT_COLOR_BIT);
+                    allocatedImage.image, aspect);
 
     return true;
 }

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <functional>
+#include <string>
+#include <unordered_map>
 
 #include "CommandsSubmitter.hpp"
 #include "FrameData.hpp"
@@ -53,13 +55,14 @@ class RendererImp {
     VkPipeline trianglePipeline;
 
     vk::AllocatedImage drawImage;
+    vk::AllocatedImage depthImage;
 
     VkFence submitFence{};
     VkCommandBuffer submitCommandBuffer{};
 
-    std::vector<GPUMesh> meshes;
-
     uint32_t frameCounter{};
+
+    std::unordered_map<std::string, GPUMesh> meshes;
 
     void drawBackground(VkCommandBuffer cmd);
     void drawTriangle(VkCommandBuffer cmd);
@@ -74,10 +77,8 @@ class RendererImp {
 
     void render();
 
-    GPUMesh uploadMesh(const std::vector<uint32_t>& indices,
+    GPUMesh* uploadMesh(const std::string& name, const std::vector<uint32_t>& indices,
                        const std::vector<Vertex>& vertices);
-    void destroyMesh(GPUMesh& mesh);
-
-    std::vector<GPUMesh> temp_drawMeshes;
+    void destroyMesh(const std::string& name);
 };
 }  // namespace vkr

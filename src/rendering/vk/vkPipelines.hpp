@@ -45,8 +45,10 @@ VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo();
 
 VkRenderingAttachmentInfo attachmentInfo(VkImageView view, VkClearValue* clear,
                                          VkImageLayout layout);
+VkRenderingAttachmentInfo depthAttachmentInfo(VkImageView view,
+                                              VkImageLayout layout);
 VkRenderingInfo renderingInfo(VkExtent2D renderExtent,
-               VkRenderingAttachmentInfo* colorAttachment,
-               VkRenderingAttachmentInfo* depthAttachment);
+                              VkRenderingAttachmentInfo* colorAttachment,
+                              VkRenderingAttachmentInfo* depthAttachment);
 
 }  // namespace vk

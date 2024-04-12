@@ -4,15 +4,6 @@
 #include "System.hpp"
 
 namespace vkr {
-class MeshImp : public Mesh {
-   public:
-    GPUMesh data;
-    RendererImp& imp;
-
-    MeshImp(GPUMesh d, RendererImp& i) : data(d), imp(i) {}
-
-    ~MeshImp() { imp.destroyMesh(data); }
-};
 
 Renderer::Renderer(System& system)
     : system(system),
@@ -21,11 +12,16 @@ Renderer::Renderer(System& system)
 void Renderer::drawFrame() { imp->render(); }
 Renderer::~Renderer() {}
 
-std::unique_ptr<Mesh> Renderer::createMesh(
+Mesh Renderer::createMesh(
     const std::vector<uint32_t>& indices, const std::vector<Vertex>& vertices) {
-    return std::make_unique<MeshImp>(imp->uploadMesh(indices, vertices), *imp);
+    static int i = 0;
+    const auto name = "Mesh" + std::to_string(i++);
+    return Mesh(imp->uploadMesh(name, indices, vertices), imp.get(), name);
 }
-void Renderer::pushMesh(Mesh* m) {
-    imp->temp_drawMeshes.push_back(((MeshImp*)m)->data);
+void Mesh::free() {
+    if (data) {
+        imp->destroyMesh(name);
+        data = 0;
+    }
 }
 }  // namespace vkr

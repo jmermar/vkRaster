@@ -21,7 +21,8 @@ bool imageViewCreate(VkImageView& imageView, VkDevice device, VkFormat format,
 bool allocateImage(AllocatedImage& allocatedImage, VkDevice device,
                    VmaAllocator allocator, const VkExtent3D imageExtent,
                    VkFormat imageFormat, VkImageUsageFlags usage,
-                   VmaMemoryUsage memoryUsage);
+                   VmaMemoryUsage memoryUsage,
+                   VkImageAspectFlags aspect = VK_IMAGE_ASPECT_COLOR_BIT);
 
 bool freeImage(AllocatedImage& image, VkDevice device, VmaAllocator allocator);
 void copyImageToImage(VkCommandBuffer cmd, VkImage source, VkImage destination,

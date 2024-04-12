@@ -99,6 +99,21 @@ VkRenderingAttachmentInfo vk::attachmentInfo(VkImageView view,
     return colorAttachment;
 }
 
+VkRenderingAttachmentInfo vk::depthAttachmentInfo(VkImageView view,
+                                                  VkImageLayout layout) {
+    VkRenderingAttachmentInfo depthAttachment{};
+    depthAttachment.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    depthAttachment.pNext = nullptr;
+
+    depthAttachment.imageView = view;
+    depthAttachment.imageLayout = layout;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    depthAttachment.clearValue.depthStencil.depth = 0.f;
+
+    return depthAttachment;
+}
+
 VkRenderingInfo vk::renderingInfo(VkExtent2D renderExtent,
                                    VkRenderingAttachmentInfo* colorAttachment,
                                    VkRenderingAttachmentInfo* depthAttachment) {

@@ -6,6 +6,7 @@ constexpr uint32_t WIDTH = 1920, HEIGHT = 1080;
 class MyProgram : public vkr::Program {
    protected:
     float a = 0;
+    vkr::Mesh mesh;
     void onFrame(float deltaTime) override {
         a += deltaTime;
         if (a > 1) a = 0;
@@ -32,8 +33,7 @@ class MyProgram : public vkr::Program {
         rect_indices[4] = 1;
         rect_indices[5] = 3;
 
-        auto mesh = renderer.createMesh(rect_indices, rect_vertices);
-        renderer.pushMesh(mesh.get());
+        mesh = renderer.createMesh(rect_indices, rect_vertices);
     }
 
    public:
