@@ -1,4 +1,4 @@
-#include "vkRaster/Program.hpp"
+#include "Program.hpp"
 
 #include "System.hpp"
 namespace vkr {
@@ -13,11 +13,11 @@ void Program::run() {
     while (!shouldQuit) {
         float delta = (SDL_GetTicks() - ticks) / 1000.f;
         ticks = SDL_GetTicks();
-        system->handleInput(shouldQuit);
+        system.handleInput(shouldQuit);
 
         onFrame(delta);
 
-        renderer.drawFrame();
+        renderer.render();
     }
 }
 }  // namespace vkr

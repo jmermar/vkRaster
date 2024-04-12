@@ -115,8 +115,8 @@ VkRenderingAttachmentInfo vk::depthAttachmentInfo(VkImageView view,
 }
 
 VkRenderingInfo vk::renderingInfo(VkExtent2D renderExtent,
-                                   VkRenderingAttachmentInfo* colorAttachment,
-                                   VkRenderingAttachmentInfo* depthAttachment) {
+                                  VkRenderingAttachmentInfo* colorAttachment,
+                                  VkRenderingAttachmentInfo* depthAttachment) {
     VkRenderingInfo renderInfo{};
     renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
     renderInfo.pNext = nullptr;

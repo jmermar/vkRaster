@@ -1,8 +1,7 @@
 #pragma once
-#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 
-#include "vkRaster/types.hpp"
+#include "types.hpp"
 
 namespace vkr {
 class System {

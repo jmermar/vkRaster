@@ -22,12 +22,14 @@ struct DeletionQueue {
     std::vector<DeleteBufferData> buffers;
 
     inline void addImage(const AllocatedImage& img) {
+        if (!img.allocation && !img.image && !img.imageView) return;
         images.push_back({.imageView = img.imageView,
                           .image = img.image,
                           .alloc = img.allocation});
     }
 
     inline void addBuffer(const AllocatedBuffer& buffer) {
+        if (!buffer.allocation && !buffer.buffer) return;
         buffers.push_back(
             {.buffer = buffer.buffer, .alloc = buffer.allocation});
     }

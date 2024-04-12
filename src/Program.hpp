@@ -1,19 +1,18 @@
 #pragma once
 #include <memory>
 
-#include "vkRaster//ResourceManager.hpp"
-#include "vkRaster/Renderer.hpp"
-#include "vkRaster/types.hpp"
+#include "Rendering/Renderer.hpp"
+#include "System.hpp"
+#include "types.hpp"
 namespace vkr {
-class System;
 class Program {
    private:
     Size size{};
     const char* winName{};
-    std::unique_ptr<System> system{std::make_unique<System>(size, winName)};
+    System system{size, winName};
 
    protected:
-    Renderer renderer{*system};
+    Renderer renderer{system.getWindow(), size.w, size.h};
     virtual void onFrame(float deltaTime) = 0;
 
    public:

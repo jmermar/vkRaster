@@ -6,26 +6,20 @@
 
 #include "CommandsSubmitter.hpp"
 #include "FrameData.hpp"
+#include "MeshHandler.hpp"
 #include "Swapchain.hpp"
+#include "types.hpp"
 #include "vk/vkBuffer.hpp"
 #include "vk/vkDeletion.hpp"
 #include "vk/vkDescriptors.hpp"
 #include "vk/vkImage.hpp"
-#include "vkRaster/types.hpp"
 namespace vkr {
-struct GPUMesh {
-    vk::AllocatedBuffer indexBuffer;
-    vk::AllocatedBuffer vertexBuffer;
-    VkDeviceAddress vertexBufferAddr;
-    size_t nVertices, nIndices;
-};
-
 struct GPUDrawPushConstants {
     glm::mat4 worldMatrix;
     VkDeviceAddress vertexBuffer;
 };
 
-class RendererImp {
+class Renderer {
    private:
     class System {
        private:
@@ -49,6 +43,10 @@ class RendererImp {
     FrameData frameData{system.get(), screenSize.w, screenSize.h};
     CommandsSubmitter submitter{system.get()};
 
+   public:
+    MeshHandler meshHandler{*this};
+
+   private:
     vk::DescriptorAllocator globalDescriptorAllocator;
 
     VkPipelineLayout trianglePipelineLayout;
@@ -62,8 +60,6 @@ class RendererImp {
 
     uint32_t frameCounter{};
 
-    std::unordered_map<std::string, GPUMesh> meshes;
-
     void drawBackground(VkCommandBuffer cmd);
     void drawTriangle(VkCommandBuffer cmd);
 
@@ -72,13 +68,12 @@ class RendererImp {
     void initSubmit();
 
    public:
-    RendererImp(SDL_Window* window, uint32_t w, uint32_t h);
-    ~RendererImp();
+    Renderer(SDL_Window* window, uint32_t w, uint32_t h);
+    ~Renderer();
 
     void render();
 
-    GPUMesh* uploadMesh(const std::string& name, const std::vector<uint32_t>& indices,
-                       const std::vector<Vertex>& vertices);
-    void destroyMesh(const std::string& name);
+    GPUMesh uploadMesh(const MeshData& data);
+    void destroyMesh(GPUMesh& mesh);
 };
 }  // namespace vkr
