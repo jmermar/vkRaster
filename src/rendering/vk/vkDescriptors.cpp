@@ -2,11 +2,15 @@
 
 namespace vk {
 void DescriptorLayoutBuilder::addBinding(uint32_t binding,
-                                         VkDescriptorType type) {
+                                         VkDescriptorType type,
+                                         size_t descriptorCount,
+                                         VkDescriptorBindingFlags flags) {
     VkDescriptorSetLayoutBinding newbind{};
     newbind.binding = binding;
     newbind.descriptorCount = 1;
     newbind.descriptorType = type;
+
+    this->flags.push_back(flags);
 
     bindings.push_back(newbind);
 }
@@ -14,7 +18,8 @@ void DescriptorLayoutBuilder::addBinding(uint32_t binding,
 void DescriptorLayoutBuilder::clear() { bindings.clear(); }
 
 VkDescriptorSetLayout DescriptorLayoutBuilder::build(
-    VkDevice device, VkShaderStageFlags shaderStages) {
+    VkDevice device, VkDescriptorSetLayoutCreateFlags flags,
+    VkShaderStageFlags shaderStages) {
     for (auto& b : bindings) {
         b.stageFlags |= shaderStages;
     }
@@ -25,7 +30,16 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(
 
     info.pBindings = bindings.data();
     info.bindingCount = (uint32_t)bindings.size();
-    info.flags = 0;
+    info.flags = flags;
+
+    VkDescriptorSetLayoutBindingFlagsCreateInfo bindingFlags{};
+    bindingFlags.sType =
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO;
+    bindingFlags.pNext = nullptr;
+    bindingFlags.pBindingFlags = this->flags.data();
+    bindingFlags.bindingCount = this->flags.size();
+
+    info.pNext = &bindingFlags;
 
     VkDescriptorSetLayout set;
     vkCreateDescriptorSetLayout(device, &info, nullptr, &set);
@@ -34,7 +48,8 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(
 }
 
 void DescriptorAllocator::initPool(VkDevice device, uint32_t maxSets,
-                                   std::span<PoolSizeRatio> poolRatios) {
+                                   std::span<PoolSizeRatio> poolRatios,
+                                   VkDescriptorPoolCreateFlags flags) {
     std::vector<VkDescriptorPoolSize> poolSizes;
     for (PoolSizeRatio ratio : poolRatios) {
         poolSizes.push_back(VkDescriptorPoolSize{
@@ -44,7 +59,7 @@ void DescriptorAllocator::initPool(VkDevice device, uint32_t maxSets,
 
     VkDescriptorPoolCreateInfo pool_info = {
         .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
-    pool_info.flags = 0;
+    pool_info.flags = flags;
     pool_info.maxSets = maxSets;
     pool_info.poolSizeCount = (uint32_t)poolSizes.size();
     pool_info.pPoolSizes = poolSizes.data();

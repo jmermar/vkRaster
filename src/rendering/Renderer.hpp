@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "BindlessDescriptor.hpp"
 #include "CommandsSubmitter.hpp"
 #include "FrameData.hpp"
 #include "MeshHandler.hpp"
@@ -40,12 +41,11 @@ class Renderer {
     CommandsSubmitter submitter{system.get()};
 
    public:
+    GlobalDescriptors globalDescriptors{*this};
     MeshHandler meshHandler{*this};
     UnlitRenderer unlitRenderer{*this};
 
    private:
-    vk::DescriptorAllocator globalDescriptorAllocator;
-
     vk::AllocatedImage drawImage;
     vk::AllocatedImage depthImage;
 
@@ -56,7 +56,6 @@ class Renderer {
 
     void drawBackground(VkCommandBuffer cmd);
 
-    void initDescriptorSets();
     void initSubmit();
 
    public:

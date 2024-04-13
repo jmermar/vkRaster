@@ -11,7 +11,6 @@ namespace vkr {
 struct GPUMesh {
     vk::AllocatedBuffer indexBuffer{};
     vk::AllocatedBuffer vertexBuffer{};
-    VkDeviceAddress vertexBufferAddr{};
     size_t nVertices{}, nIndices{};
 };
 

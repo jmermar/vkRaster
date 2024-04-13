@@ -65,7 +65,6 @@ Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                       VMA_MEMORY_USAGE_GPU_ONLY, VK_IMAGE_ASPECT_DEPTH_BIT);
 
-    initDescriptorSets();
     unlitRenderer.initPipeline();
 }
 
@@ -117,15 +116,13 @@ GPUMesh Renderer::uploadMesh(const MeshData& meshData) {
     newSurface.vertexBuffer = vk::createBuffer(
         allocator, vertexBufferSize,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-            VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+            VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
 
     // find the adress of the vertex buffer
     VkBufferDeviceAddressInfo deviceAdressInfo{
         .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
         .buffer = newSurface.vertexBuffer.buffer};
-    newSurface.vertexBufferAddr =
-        vkGetBufferDeviceAddress(device, &deviceAdressInfo);
 
     // create index buffer
     newSurface.indexBuffer = vk::createBuffer(
@@ -188,8 +185,6 @@ void Renderer::drawBackground(VkCommandBuffer buffer) {
 
 Renderer::~Renderer() {
     vkDeviceWaitIdle(system.get().device);
-
-    globalDescriptorAllocator.destroyPool(system.get().device);
 
     vk::freeImage(depthImage, system.get().device, system.get().allocator);
     vk::freeImage(drawImage, system.get().device, system.get().allocator);
@@ -298,14 +293,6 @@ void Renderer::destroyMesh(GPUMesh& mesh) {
 void Renderer::destroyBuffer(vk::AllocatedBuffer& buffer) {
     frameData.getFrame(frameCounter + 1).deletion.addBuffer(buffer);
     buffer = {0, 0, 0};
-}
-
-void Renderer::initDescriptorSets() {
-    auto device = system.get().device;
-    std::vector<vk::DescriptorAllocator::PoolSizeRatio> sizes = {
-        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
-
-    globalDescriptorAllocator.initPool(device, 10, sizes);
 }
 
 Renderer::System::System(SDL_Window* win) { vk::initSystem(system, win); }

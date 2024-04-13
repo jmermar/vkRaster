@@ -20,6 +20,9 @@ class PipelineBuilder {
     VkPipelineRenderingCreateInfo _renderInfo;
     VkFormat _colorAttachmentformat;
 
+    std::vector<VkVertexInputBindingDescription> vertexInputBindings;
+    std::vector<VkVertexInputAttributeDescription> vertexInputAttributes;
+
     PipelineBuilder() { clear(); }
 
     void clear();

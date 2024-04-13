@@ -1,4 +1,5 @@
 #pragma once
+#include "../BindlessDescriptor.hpp"
 #include "../vk/vkBuffer.hpp"
 #include "../vk/vkPipelines.hpp"
 #include "rendering/MeshHandler.hpp"
@@ -12,13 +13,13 @@ class UnlitRenderer {
     VkPipelineLayout pipelineLayout{};
     VkPipeline pipeline{};
 
+    BufferBindHandle instancesBind;
+
     Renderer& render;
     std::vector<VkDrawIndexedIndirectCommand> commands;
     std::vector<InstanceData> instances;
     vk::AllocatedBuffer commandsBuffer;
     vk::AllocatedBuffer instancesBuffer;
-
-    VkDeviceAddress instancesAddr{};
 
     bool empty{true};
 

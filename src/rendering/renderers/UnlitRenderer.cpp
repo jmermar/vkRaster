@@ -6,8 +6,8 @@
 namespace vkr {
 struct GPUDrawPushConstants {
     glm::mat4 projViewMatrix;
-    VkDeviceAddress vertexBuffer;
-    VkDeviceAddress instanceBuffer;
+    BufferBindHandle instanceBinds;
+    float pad[3];
 };
 
 void UnlitRenderer::initPipeline() {
@@ -33,6 +33,9 @@ void UnlitRenderer::initPipeline() {
         vk::pipelineLayoutCreateInfo();
     pipeline_layout_info.pPushConstantRanges = &bufferRange;
     pipeline_layout_info.pushConstantRangeCount = 1;
+    pipeline_layout_info.setLayoutCount = 0;
+    pipeline_layout_info.pSetLayouts = &render.globalDescriptors.layout;
+    pipeline_layout_info.setLayoutCount = 1;
 
     vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr,
                            &pipelineLayout);
@@ -51,6 +54,35 @@ void UnlitRenderer::initPipeline() {
     pipelineBuilder.enableDepthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
     pipelineBuilder.setDepthFormat(depthImage.imageFormat);
     pipelineBuilder.setColorAttachmentFormat(drawImage.imageFormat);
+
+    VkVertexInputBindingDescription binding{};
+    binding.binding = 0;
+    binding.stride = sizeof(Vertex);
+    binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    pipelineBuilder.vertexInputBindings.push_back(binding);
+
+    VkVertexInputAttributeDescription desc{};
+    desc.binding = 0;
+
+    desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+    desc.offset = offsetof(Vertex, position);
+    desc.location = 0;
+    pipelineBuilder.vertexInputAttributes.push_back(desc);
+
+    desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+    desc.offset = offsetof(Vertex, normal);
+    desc.location = 1;
+    pipelineBuilder.vertexInputAttributes.push_back(desc);
+
+    desc.format = VK_FORMAT_R32G32_SFLOAT;
+    desc.offset = offsetof(Vertex, uv);
+    desc.location = 2;
+    pipelineBuilder.vertexInputAttributes.push_back(desc);
+
+    desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+    desc.offset = offsetof(Vertex, color);
+    desc.location = 3;
+    pipelineBuilder.vertexInputAttributes.push_back(desc);
 
     pipeline = pipelineBuilder.buildPipeline(device);
 
@@ -93,6 +125,10 @@ void UnlitRenderer::draw(VkCommandBuffer cmd) {
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipelineLayout, 0, 1,
+                            &render.globalDescriptors.descriptor, 0, 0);
+
     // set dynamic viewport and scissor
     VkViewport viewport = {};
     viewport.x = 0;
@@ -116,19 +152,23 @@ void UnlitRenderer::draw(VkCommandBuffer cmd) {
 
     GPUDrawPushConstants push_constatns;
     push_constatns.projViewMatrix = glm::mat4(1);
-    push_constatns.vertexBuffer = meshBuffer.vertexBufferAddr;
-    push_constatns.instanceBuffer = instancesAddr;
-    // push_constatns.instancesBuffer = instancesAddr;
+    push_constatns.instanceBinds = instancesBind;
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                        sizeof(GPUDrawPushConstants), &push_constatns);
     vkCmdBindIndexBuffer(cmd, meshBuffer.indexBuffer.buffer, 0,
                          VK_INDEX_TYPE_UINT32);
+
+    VkDeviceSize offset = 0;
+    vkCmdBindVertexBuffers(cmd, 0, 1, &meshBuffer.vertexBuffer.buffer, &offset);
 
     vkCmdDrawIndexedIndirect(cmd, commandsBuffer.buffer, 0, commands.size(),
                              sizeof(VkDrawIndexedIndirectCommand));
     vkCmdEndRendering(cmd);
 }
 void UnlitRenderer::clear() {
+    if (!empty) {
+        render.globalDescriptors.removeBind(instancesBind);
+    }
     empty = true;
     commands.clear();
     instances.clear();
@@ -145,12 +185,8 @@ void UnlitRenderer::build() {
     instancesBuffer = render.uploadBuffer(
         instances.data(), instances.size() * sizeof(InstanceData),
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT);
-
-    VkBufferDeviceAddressInfo deviceAdressInfo{
-        .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-        .buffer = instancesBuffer.buffer};
-    instancesAddr =
-        vkGetBufferDeviceAddress(render.getSystem().device, &deviceAdressInfo);
+    instancesBind =
+        render.globalDescriptors.addStorageBuffer(instancesBuffer.buffer);
     empty = false;
 }
 void UnlitRenderer::addInstance(MeshHandle* handle,

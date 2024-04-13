@@ -161,6 +161,16 @@ VkPipeline vk::PipelineBuilder::buildPipeline(VkDevice device) {
     viewportState.viewportCount = 1;
     viewportState.scissorCount = 1;
 
+    VkPipelineVertexInputStateCreateInfo _vertexInputInfo = {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
+
+    _vertexInputInfo.pVertexAttributeDescriptions =
+        vertexInputAttributes.data();
+    _vertexInputInfo.vertexAttributeDescriptionCount =
+        vertexInputAttributes.size();
+    _vertexInputInfo.pVertexBindingDescriptions = vertexInputBindings.data();
+    _vertexInputInfo.vertexBindingDescriptionCount = vertexInputBindings.size();
+
     VkPipelineColorBlendStateCreateInfo colorBlending = {};
     colorBlending.sType =
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -170,9 +180,6 @@ VkPipeline vk::PipelineBuilder::buildPipeline(VkDevice device) {
     colorBlending.logicOp = VK_LOGIC_OP_COPY;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &_colorBlendAttachment;
-
-    VkPipelineVertexInputStateCreateInfo _vertexInputInfo = {
-        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO};
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {
         .sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
