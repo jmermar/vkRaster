@@ -9,8 +9,6 @@ struct FrameStructs {
     VkCommandPool pool{};
     VkCommandBuffer buffer{};
 
-    VkImage depthImage{};
-    VkImageView depthImageView{};
     VkDeviceMemory depthDeviceMemory{};
 
     VkSemaphore swapchainSemaphore{}, renderSemaphore{};
@@ -23,16 +21,15 @@ class FrameData {
    private:
     const vk::vkSystem* system{};
     FrameStructs frames[FRAMES_IN_FLIGHT];
-    VkExtent2D extent{};
 
     void loadFrame(FrameStructs& frame);
 
    public:
-    FrameData(const vk::vkSystem& system, uint32_t w, uint32_t h);
+    FrameData(const vk::vkSystem& system);
     FrameData() = default;
     ~FrameData();
 
-    void init(const vk::vkSystem& system, uint32_t w, uint32_t h);
+    void init(const vk::vkSystem& system);
     void free();
 
     FrameData(const FrameData&) = delete;

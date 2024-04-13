@@ -21,16 +21,18 @@ size_t GlobalDescriptors::getFirstFree(std::vector<bool>& v) {
 }
 GlobalDescriptors::GlobalDescriptors(Renderer& render) : render(render) {
     vk::DescriptorLayoutBuilder layoutBuilder;
+    auto& limits = render.getSystem().physicalDeviceProperties.limits;
     layoutBuilder.addBinding(UNIFORM_BIND, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                             1000,
+                             limits.maxDescriptorSetUniformBuffers,
                              VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
                                  VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT);
     layoutBuilder.addBinding(STORAGE_BIND, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-                             1000,
+                             limits.maxDescriptorSetStorageBuffers,
                              VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
                                  VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT);
     layoutBuilder.addBinding(IMAGE_SAMPLER_BIND,
-                             VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000,
+                             VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                             limits.maxDescriptorSetSampledImages,
                              VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT |
                                  VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT);
 
@@ -40,11 +42,11 @@ GlobalDescriptors::GlobalDescriptors(Renderer& render) : render(render) {
         VK_SHADER_STAGE_ALL);
 
     vk::DescriptorAllocator::PoolSizeRatio sizes[3] = {
-        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1.0},
-        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1.0},
-        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1.0}};
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1024},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1024},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024}};
 
-    alloc.initPool(render.getSystem().device, 1009, sizes,
+    alloc.initPool(render.getSystem().device, sizes,
                    VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT);
 
     descriptor = alloc.allocate(render.getSystem().device, layout);

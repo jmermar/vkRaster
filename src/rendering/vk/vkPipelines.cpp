@@ -1,4 +1,5 @@
 #include "vkPipelines.hpp"
+#include "vkUtils.hpp"
 
 #include <fstream>
 #include <iostream>

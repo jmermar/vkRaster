@@ -51,24 +51,48 @@ VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo* cmd,
 
 Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
     : win(window), screenSize({w, h}) {
-    auto device = system.get().device;
-    vk::allocateImage(
-        drawImage, device, system.get().allocator,
-        {.width = w, .height = h, .depth = 1}, VK_FORMAT_R16G16B16A16_SFLOAT,
-        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-            VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-        VMA_MEMORY_USAGE_GPU_ONLY);
-
-    vk::allocateImage(depthImage, device, system.get().allocator,
-                      {.width = w, .height = h, .depth = 1},
-                      VK_FORMAT_D32_SFLOAT,
-                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                      VMA_MEMORY_USAGE_GPU_ONLY, VK_IMAGE_ASPECT_DEPTH_BIT);
-
+    initImages();
     unlitRenderer.initPipeline();
 }
 
 void Renderer::initSubmit() {}
+
+void Renderer::initImages() {
+    auto device = system.get().device;
+    vk::allocateImage(
+        drawImage, device, system.get().allocator,
+        {.width = screenSize.w, .height = screenSize.h, .depth = 1},
+        VK_FORMAT_R16G16B16A16_SFLOAT,
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+        VMA_MEMORY_USAGE_GPU_ONLY);
+
+    vk::allocateImage(
+        depthImage, device, system.get().allocator,
+        {.width = screenSize.w, .height = screenSize.h, .depth = 1},
+        VK_FORMAT_D32_SFLOAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+        VMA_MEMORY_USAGE_GPU_ONLY, VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+
+void Renderer::resize() {
+    vkDeviceWaitIdle(system.get().device);
+    int w, h;
+
+    vk::freeImage(drawImage, system.get().device, system.get().allocator);
+    vk::freeImage(depthImage, system.get().device, system.get().allocator);
+
+    swapchain.destroy();
+    frameData.free();
+
+    SDL_GetWindowSize(win, &w, &h);
+    screenSize.w = w;
+    screenSize.h = h;
+
+    swapchain.init(system.get(), w, h);
+    frameData.init(system.get());
+
+    initImages();
+}
 
 vk::AllocatedBuffer Renderer::uploadBuffer(void* data, size_t size,
                                            VkBufferUsageFlags usage) {
@@ -170,7 +194,8 @@ GPUMesh Renderer::uploadMesh(const MeshData& meshData) {
 void Renderer::drawBackground(VkCommandBuffer buffer) {
     VkClearColorValue clearValue;
     float flash = abs(sin(frameCounter / 120.f));
-    clearValue = {{0.0f, 0.0f, flash, 1.0f}};
+    clearValue = {{renderData.clearColor.r, renderData.clearColor.g,
+                   renderData.clearColor.b, 1.0f}};
 
     VkImageSubresourceRange clearRange{};
     clearRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -191,6 +216,9 @@ Renderer::~Renderer() {
 }
 
 void Renderer::render() {
+    if (shouldResize) {
+        resize();
+    }
     const auto& system = this->system.get();
     auto device = system.device;
     auto& frame = frameData.getFrame(frameCounter);
@@ -204,8 +232,14 @@ void Renderer::render() {
     frame.deletion.clear(system.device, system.allocator);
 
     uint32_t swwapchainImageIndex;
-    vkAcquireNextImageKHR(device, swapchain.getSwapchain(), 10000000000000,
-                          swapchainSemaphore, 0, &swwapchainImageIndex);
+    auto result =
+        vkAcquireNextImageKHR(device, swapchain.getSwapchain(), 10000000000000,
+                              swapchainSemaphore, 0, &swwapchainImageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        shouldResize = true;
+        frameCounter++;
+        return;
+    }
 
     auto swapchainImage = swapchain.getImage(swwapchainImageIndex);
     auto swapchainImageView = swapchain.getImageView(swwapchainImageIndex);
@@ -247,7 +281,7 @@ void Renderer::render() {
 
     vk::copyImageToImage(buffer, drawImage.image, swapchainImage,
                          {.width = screenSize.w, .height = screenSize.h},
-                         {.width = screenSize.w, .height = screenSize.h});
+                         {.width = screenSize.w, .height = screenSize.h}, true);
 
     vkCommands::transitionImage(buffer, swapchainImage,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -278,7 +312,11 @@ void Renderer::render() {
 
     presentInfo.pImageIndices = &swwapchainImageIndex;
 
-    vkQueuePresentKHR(system.graphicsQueue, &presentInfo);
+    auto presentResult = vkQueuePresentKHR(system.graphicsQueue, &presentInfo);
+
+    if (presentResult == VK_ERROR_OUT_OF_DATE_KHR) {
+        shouldResize = true;
+    }
 
     frameCounter++;
 }

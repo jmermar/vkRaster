@@ -21,13 +21,12 @@ struct DescriptorLayoutBuilder {
 struct DescriptorAllocator {
     struct PoolSizeRatio {
         VkDescriptorType type;
-        float ratio;
+        size_t size;
     };
 
     VkDescriptorPool pool;
 
-    void initPool(VkDevice device, uint32_t maxSets,
-                  std::span<PoolSizeRatio> poolRatios,
+    void initPool(VkDevice device, std::span<PoolSizeRatio> sizes,
                   VkDescriptorPoolCreateFlags flags = 0);
     void clearDescriptors(VkDevice device);
     void destroyPool(VkDevice device);

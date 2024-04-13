@@ -1,4 +1,5 @@
 #include "vkBuffer.hpp"
+#include "vkUtils.hpp"
 
 namespace vk {
 AllocatedBuffer createBuffer(VmaAllocator allocator, size_t allocSize,
@@ -16,8 +17,8 @@ AllocatedBuffer createBuffer(VmaAllocator allocator, size_t allocSize,
     vmaallocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
     AllocatedBuffer newBuffer;
 
-    vmaCreateBuffer(allocator, &bufferInfo, &vmaallocInfo, &newBuffer.buffer,
-                    &newBuffer.allocation, &newBuffer.info);
+    VK_TRY(vmaCreateBuffer(allocator, &bufferInfo, &vmaallocInfo, &newBuffer.buffer,
+                    &newBuffer.allocation, &newBuffer.info));
 
     return newBuffer;
 }

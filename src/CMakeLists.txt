@@ -1,5 +1,5 @@
 # Add source to this project's executable.
-add_executable (${PROJECT_NAME} "main.cpp"  "Program.cpp" "System.cpp" "rendering/Renderer.cpp" "rendering/vk/vkSync.cpp"  "rendering/vk/vkCommand.cpp" "rendering/vk/vkImage.cpp" "rendering/vk/vkInit.cpp" "rendering/vk/vkDescriptors.cpp" "rendering/vk/vkPipelines.cpp" "rendering/FrameData.cpp" "rendering/Swapchain.cpp" "rendering/vk/vma.cpp" "rendering/vk/vkDeletion.cpp" "rendering/vk/vkBuffer.cpp" "rendering/CommandsSubmitter.cpp" "rendering/MeshHandler.cpp"  "rendering/renderers/UnlitRenderer.cpp" "rendering/BindlessDescriptor.cpp")
+add_executable (${PROJECT_NAME} "main.cpp"  "Program.cpp" "System.cpp" "rendering/Renderer.cpp" "rendering/vk/vkSync.cpp"  "rendering/vk/vkCommand.cpp" "rendering/vk/vkImage.cpp" "rendering/vk/vkInit.cpp" "rendering/vk/vkDescriptors.cpp" "rendering/vk/vkPipelines.cpp" "rendering/FrameData.cpp" "rendering/Swapchain.cpp" "rendering/vk/vma.cpp" "rendering/vk/vkDeletion.cpp" "rendering/vk/vkBuffer.cpp" "rendering/CommandsSubmitter.cpp" "rendering/MeshHandler.cpp"  "rendering/renderers/UnlitRenderer.cpp" "rendering/BindlessDescriptor.cpp" "stb_image.h" "stb_image_write.hpp" "tinygltf.h")
 
 add_dependencies(${PROJECT_NAME} Shaders)
 

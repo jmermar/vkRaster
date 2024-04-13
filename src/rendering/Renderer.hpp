@@ -37,7 +37,7 @@ class Renderer {
     System system{win};
 
     Swapchain swapchain{system.get(), screenSize.w, screenSize.h};
-    FrameData frameData{system.get(), screenSize.w, screenSize.h};
+    FrameData frameData{system.get()};
     CommandsSubmitter submitter{system.get()};
 
    public:
@@ -54,9 +54,14 @@ class Renderer {
 
     uint32_t frameCounter{};
 
+    bool shouldResize{};
+
     void drawBackground(VkCommandBuffer cmd);
 
     void initSubmit();
+    void initImages();
+
+    void resize();
 
    public:
     Renderer(SDL_Window* window, uint32_t w, uint32_t h);
@@ -65,6 +70,7 @@ class Renderer {
     struct {
         glm::mat4 project;
         glm::mat4 view;
+        glm::vec3 clearColor;
     } renderData;
 
     void render();

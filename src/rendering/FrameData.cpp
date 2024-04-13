@@ -22,17 +22,15 @@ void FrameData::loadFrame(FrameStructs& frame) {
     vk::semaphoreCreate(frame.renderSemaphore, system->device, 0);
     vk::semaphoreCreate(frame.swapchainSemaphore, system->device, 0);
 }
-FrameData::FrameData(const vk::vkSystem& system, uint32_t w, uint32_t h) {
-    init(system, w, h);
+FrameData::FrameData(const vk::vkSystem& system) {
+    init(system);
 }
 
 FrameData::~FrameData() { free(); }
 
-void FrameData::init(const vk::vkSystem& system, uint32_t w, uint32_t h) {
+void FrameData::init(const vk::vkSystem& system) {
     free();
     this->system = &system;
-    extent.width = w;
-    extent.height = h;
 
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
         loadFrame(frames[i]);

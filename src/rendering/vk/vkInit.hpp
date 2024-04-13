@@ -19,6 +19,8 @@ struct vkSystem {
     VkQueue presentQueue;
     uint32_t graphicsQueueFamily;
     uint32_t presentQueueFamily;
+
+    VkPhysicalDeviceProperties physicalDeviceProperties;
 };
 
 bool initSystem(vkSystem& system, SDL_Window* win);

@@ -1,4 +1,5 @@
 #include "vkCommand.hpp"
+#include "vkUtils.hpp"
 
 VkImageSubresourceRange image_subresource_range(VkImageAspectFlags aspectMask) {
     VkImageSubresourceRange subImage{};

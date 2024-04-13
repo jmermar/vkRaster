@@ -151,7 +151,7 @@ void UnlitRenderer::draw(VkCommandBuffer cmd) {
     const auto& meshBuffer = render.meshHandler.getMesh();
 
     GPUDrawPushConstants push_constatns;
-    push_constatns.projViewMatrix = glm::mat4(1);
+    push_constatns.projViewMatrix = render.renderData.project * render.renderData.view;
     push_constatns.instanceBinds = instancesBind;
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                        sizeof(GPUDrawPushConstants), &push_constatns);

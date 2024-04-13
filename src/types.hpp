@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <string>
 namespace vkr {
 struct Size {
     uint32_t w, h;
@@ -30,5 +31,19 @@ struct Vertex {
 struct MeshData {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
+};
+
+struct MaterialData {
+    std::string texture;
+    glm::vec4 color;
+};
+
+struct ModelData {
+    struct MeshPair {
+        size_t materialId;
+        MeshData mesh;
+    };
+    std::vector<MaterialData> materials;
+    std::vector<MeshPair> meshes;
 };
 }  // namespace vkr

@@ -2,6 +2,8 @@
 
 #include <SDL2/SDL_vulkan.h>
 #include <VkBootstrap.h>
+
+#include "vkUtils.hpp"
 constexpr bool bUseValidationLayers = true;
 bool vk::initSystem(vkSystem& system, SDL_Window* win) {
     vkb::InstanceBuilder builder;
@@ -67,7 +69,10 @@ bool vk::initSystem(vkSystem& system, SDL_Window* win) {
     allocatorInfo.device = system.device;
     allocatorInfo.instance = system.instance;
     allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
-    vmaCreateAllocator(&allocatorInfo, &system.allocator);
+    VK_TRY(vmaCreateAllocator(&allocatorInfo, &system.allocator));
+
+    vkGetPhysicalDeviceProperties(physicalDevice,
+                                  &system.physicalDeviceProperties);
 
     return true;
 }
