@@ -83,6 +83,9 @@ class Renderer {
 
     vk::AllocatedBuffer uploadBuffer(void* data, size_t size,
                                      VkBufferUsageFlags usage);
+    vk::AllocatedImage uploadImage(void* data, VkExtent3D size,
+                                    VkFormat format, VkImageUsageFlags usage,
+                                    bool mipmapped);
     GPUMesh uploadMesh(const MeshData& data);
     void destroyMesh(GPUMesh& mesh);
     void destroyBuffer(vk::AllocatedBuffer& buffer);

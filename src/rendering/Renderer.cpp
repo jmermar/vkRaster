@@ -126,6 +126,57 @@ vk::AllocatedBuffer Renderer::uploadBuffer(void* data, size_t size,
     return newBuffer;
 }
 
+vk::AllocatedImage Renderer::uploadImage(void* data, VkExtent3D size,
+                                         VkFormat format,
+                                         VkImageUsageFlags usage,
+                                         bool mipmapped) {
+    auto device = system.get().device;
+    auto allocator = system.get().allocator;
+
+    size_t data_size = size.depth * size.width * size.height * 4;
+    vk::AllocatedBuffer uploadbuffer =
+        vk::createBuffer(allocator, data_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                         VMA_MEMORY_USAGE_CPU_TO_GPU);
+
+    memcpy(uploadbuffer.info.pMappedData, data, data_size);
+
+    vk::AllocatedImage new_image;
+    vk::allocateImage(new_image, device, allocator, size, format,
+                      usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                          VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                      VMA_MEMORY_USAGE_GPU_ONLY);
+
+    submitter.immediateSubmit([&](VkCommandBuffer cmd) {
+        vkCommands::transitionImage(cmd, new_image.image,
+                                    VK_IMAGE_LAYOUT_UNDEFINED,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+        VkBufferImageCopy copyRegion = {};
+        copyRegion.bufferOffset = 0;
+        copyRegion.bufferRowLength = 0;
+        copyRegion.bufferImageHeight = 0;
+
+        copyRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        copyRegion.imageSubresource.mipLevel = 0;
+        copyRegion.imageSubresource.baseArrayLayer = 0;
+        copyRegion.imageSubresource.layerCount = 1;
+        copyRegion.imageExtent = size;
+
+        // copy the buffer into the image
+        vkCmdCopyBufferToImage(cmd, uploadbuffer.buffer, new_image.image,
+                               VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                               &copyRegion);
+
+        vkCommands::transitionImage(cmd, new_image.image,
+                                    VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    });
+
+    vmaDestroyBuffer(allocator, uploadbuffer.buffer, uploadbuffer.allocation);
+
+    return new_image;
+}
+
 GPUMesh Renderer::uploadMesh(const MeshData& meshData) {
     auto& vertices = meshData.vertices;
     auto& indices = meshData.indices;
