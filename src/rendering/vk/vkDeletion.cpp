@@ -2,22 +2,22 @@
 
 namespace vk {
 void DeletionQueue::clear(VkDevice device, VmaAllocator alloc) {
-    for (const auto& image : images) {
+    for (auto& image : images) {
         if (image.imageView) {
             vkDestroyImageView(device, image.imageView, nullptr);
         }
         if (image.alloc) {
             vmaDestroyImage(alloc, image.image, image.alloc);
-        } else {
+        } else if (image.image) {
             vkDestroyImage(device, image.image, nullptr);
         }
     }
     images.clear();
 
-    for (const auto& buffer : buffers) {
+    for (auto& buffer : buffers) {
         if (buffer.alloc) {
             vmaDestroyBuffer(alloc, buffer.buffer, buffer.alloc);
-        } else {
+        } else if (buffer.buffer) {
             vkDestroyBuffer(device, buffer.buffer, nullptr);
         }
     }

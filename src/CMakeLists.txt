@@ -4,7 +4,7 @@ file(GLOB_RECURSE SRC
      "*.cpp"
 )
 
-add_executable (${PROJECT_NAME} ${SRC})
+add_executable (${PROJECT_NAME} ${SRC} "rendering/SceneState.cpp")
 
 add_dependencies(${PROJECT_NAME} Shaders)
 

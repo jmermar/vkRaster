@@ -89,6 +89,8 @@ bool vkApp::renderBegin(FrameData** frameP) {
     vkWaitForFences(system.device, 1, &renderFence, true, 10000000000000);
     vkResetFences(system.device, 1, &renderFence);
 
+    frame.deletion.clear(system.device, system.allocator);
+
     auto result = vkAcquireNextImageKHR(system.device, swapchain.swapchain,
                                         10000000000000, swapchainSemaphore, 0,
                                         &swapchainImageIndex);
@@ -294,7 +296,23 @@ void vkApp::prepareUploads(VkCommandBuffer cmd) {
         queue.addBuffer(staging);
     }
 
+    VkMemoryBarrier2 barrier{.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2};
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT;
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+    barrier.dstAccessMask =
+        VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT;
+
+    VkDependencyInfo depInfo{};
+    depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depInfo.pNext = nullptr;
+
+    depInfo.memoryBarrierCount = 1;
+    depInfo.pMemoryBarriers = &barrier;
+
     copyBuffers.clear();
     copyImages.clear();
+
+    vkCmdPipelineBarrier2(cmd, &depInfo);
 }
 }  // namespace vk

@@ -11,10 +11,12 @@ struct vkApp;
 
 namespace vkr {
 class BufferWritter;
+class SceneState;
 class Renderer {
    private:
     vk::vkApp& app;
     BufferWritter* bufferWritter;
+    SceneState* sceneState;
     Size screenSize;
 
    public:
