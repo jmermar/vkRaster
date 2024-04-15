@@ -53,6 +53,9 @@ class SceneState {
     BufferHandle allocateMesh(const MeshData& data);
     void clearMeshes();
 
+    inline const VkBuffer& getIndexBuffer() { return indicesBuffer.buffer; }
+    inline const VkBuffer& getVertexBuffer() { return verticesBuffer.buffer; }
+
     static SceneState& get() { return *instance; }
 };
 }  // namespace vkr

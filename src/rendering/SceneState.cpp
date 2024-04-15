@@ -24,8 +24,8 @@ SceneState::~SceneState() {
 void SceneState::update() {
     if (meshDirty) {
         meshDirty = false;
-        app.getDeletionQueue().addBuffer(verticesBuffer);
-        app.getDeletionQueue().addBuffer(indicesBuffer);
+        app.deletion.addBuffer(verticesBuffer);
+        app.deletion.addBuffer(indicesBuffer);
 
         if (indices.size() > 0) {
             uint32_t size = sizeof(uint32_t) * indices.size();
@@ -44,8 +44,7 @@ void SceneState::update() {
                                  VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                                  VMA_MEMORY_USAGE_GPU_ONLY);
-            bufferWritter.writeBuffer(vertices.data(),
-                                      sizeof(Vertex) * vertices.size(),
+            bufferWritter.writeBuffer(vertices.data(), size,
                                       verticesBuffer.buffer);
         }
     }
@@ -59,10 +58,8 @@ BufferHandle SceneState::allocateMesh(const MeshData& data) {
                           .indicesCount = (uint32_t)data.indices.size(),
                           .baseVertex = baseVertex});
 
-    this->vertices.insert(vertices.end(), data.vertices.begin(),
-                          data.vertices.end());
-    this->indices.insert(indices.end(), data.indices.begin(),
-                         data.indices.end());
+    vertices.insert(vertices.end(), data.vertices.begin(), data.vertices.end());
+    indices.insert(indices.end(), data.indices.begin(), data.indices.end());
     return meshesData.size() - 1;
 }
 void SceneState::clearMeshes() {
