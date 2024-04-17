@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 
-#include "Rendering/Renderer.hpp"
+#include "rendering/Renderer.hpp"
 #include "System.hpp"
 #include "types.hpp"
 namespace vkr {

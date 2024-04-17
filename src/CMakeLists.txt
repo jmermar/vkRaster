@@ -21,6 +21,6 @@ find_package(Vulkan REQUIRED)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     ${Vulkan_LIBRARIES}
-    SDL2::SDL2
+    SDL3::SDL3
     vk-bootstrap::vk-bootstrap
 )
