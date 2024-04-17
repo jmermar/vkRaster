@@ -49,11 +49,11 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(
 }
 
 void DescriptorAllocator::initPool(VkDevice device,
-                                   std::span<PoolSizeRatio> sizes,
+                                   std::span<PoolSize> sizes,
                                    VkDescriptorPoolCreateFlags flags) {
     std::vector<VkDescriptorPoolSize> poolSizes;
     size_t size = 0;
-    for (PoolSizeRatio ratio : sizes) {
+    for (PoolSize ratio : sizes) {
         poolSizes.push_back(VkDescriptorPoolSize{
             .type = ratio.type,
             .descriptorCount = uint32_t(ratio.size)});
@@ -61,7 +61,8 @@ void DescriptorAllocator::initPool(VkDevice device,
     }
 
     VkDescriptorPoolCreateInfo pool_info = {
-        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO
+    };
     pool_info.flags = flags;
     pool_info.maxSets = size;
     pool_info.poolSizeCount = (uint32_t)poolSizes.size();

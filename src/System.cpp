@@ -1,4 +1,5 @@
 #include "System.hpp"
+
 #include <stdexcept>
 namespace vkr {
 System::System(const Size& size, const char* winName) {
@@ -7,7 +8,8 @@ System::System(const Size& size, const char* winName) {
     window = SDL_CreateWindow(winName, size.w, size.h,
                               SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
     if (!window) {
-        throw std::runtime_error("Cannot create window, SDL Error: " + std::string(SDL_GetError()));
+        throw std::runtime_error("Cannot create window, SDL Error: " +
+                                 std::string(SDL_GetError()));
     }
 }
 System::~System() {
