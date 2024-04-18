@@ -4,7 +4,7 @@ Simple Vulkan Renderer That I've began to work on. The purpose is to learn about
 
 # Features
 
-The project has just started, right now it can only display a solid color on screen and have some classes that will be useful later on.
+The project has just started, right now it can only display a white triangle on screen and have some classes that will be useful later on.
 
 It is supposed to contain the next features:
 - Scene loading from gtlf files.
