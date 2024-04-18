@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
 
 project(
     VkRays
@@ -8,7 +8,12 @@ project(
 
 add_subdirectory(res)
 
-ADD_DEFINITIONS(-DRESPATH=\"../../../res/\")
+
+if (WIN32)
+    ADD_DEFINITIONS(-DRESPATH=\"../../../res/\")
+else()
+    ADD_DEFINITIONS(-DRESPATH=\"../res/\")
+endif(WIN32)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 add_subdirectory(vendor EXCLUDE_FROM_ALL)

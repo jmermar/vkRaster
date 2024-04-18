@@ -4,24 +4,32 @@
 #include <iostream>
 
 #include "BufferWritter.hpp"
+#include "SceneState.hpp"
+#include "passes/UnlitPass.hpp"
 #include "vk/vkApp.hpp"
 #include "vk/vkCommand.hpp"
 #include "vk/vkPipelines.hpp"
-
 namespace vkr {
 Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
     : app(vk::vkApp::get()) {
     app.init(window, w, h);
     bufferWritter = new BufferWritter();
+    sceneState = new SceneState();
+    unlitPass = new UnlitPass();
     screenSize = {w, h};
 }
 
 Renderer::~Renderer() {
+    vkDeviceWaitIdle(app.system.device);
+    delete unlitPass;
+    delete sceneState;
     delete bufferWritter;
     app.finish();
 }
 
 void Renderer::render(glm::vec4 clearColor) {
+    sceneState->update();
+
     const auto& system = app.system;
     auto device = system.device;
     vk::vkApp::FrameData* frameP;
@@ -54,6 +62,8 @@ void Renderer::render(glm::vec4 clearColor) {
     vkCommands::transitionImage(buffer, app.drawImage.image,
                                 VK_IMAGE_LAYOUT_GENERAL,
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    unlitPass->render(buffer);
 
     // Draw scene
 

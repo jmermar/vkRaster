@@ -4,7 +4,7 @@ file(GLOB_RECURSE SRC
      "*.cpp"
 )
 
-add_executable (${PROJECT_NAME} ${SRC})
+add_executable (${PROJECT_NAME} ${SRC} "rendering/SceneState.cpp" "rendering/passes/UnlitPass.cpp")
 
 add_dependencies(${PROJECT_NAME} Shaders)
 
@@ -21,6 +21,6 @@ find_package(Vulkan REQUIRED)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     ${Vulkan_LIBRARIES}
-    SDL2::SDL2
+    SDL3::SDL3
     vk-bootstrap::vk-bootstrap
 )

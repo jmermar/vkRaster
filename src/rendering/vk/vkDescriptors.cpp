@@ -1,4 +1,5 @@
 #include "vkDescriptors.hpp"
+
 #include "vkUtils.hpp"
 
 namespace vk {
@@ -48,15 +49,13 @@ VkDescriptorSetLayout DescriptorLayoutBuilder::build(
     return set;
 }
 
-void DescriptorAllocator::initPool(VkDevice device,
-                                   std::span<PoolSizeRatio> sizes,
+void DescriptorAllocator::initPool(VkDevice device, std::span<PoolSize> sizes,
                                    VkDescriptorPoolCreateFlags flags) {
     std::vector<VkDescriptorPoolSize> poolSizes;
     size_t size = 0;
-    for (PoolSizeRatio ratio : sizes) {
+    for (PoolSize ratio : sizes) {
         poolSizes.push_back(VkDescriptorPoolSize{
-            .type = ratio.type,
-            .descriptorCount = uint32_t(ratio.size)});
+            .type = ratio.type, .descriptorCount = uint32_t(ratio.size)});
         size += ratio.size;
     }
 

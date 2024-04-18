@@ -89,6 +89,9 @@ bool vkApp::renderBegin(FrameData** frameP) {
     vkWaitForFences(system.device, 1, &renderFence, true, 10000000000000);
     vkResetFences(system.device, 1, &renderFence);
 
+    frame.deletion.clear(system.device, system.allocator);
+    frame.deletion = std::move(deletion);
+
     auto result = vkAcquireNextImageKHR(system.device, swapchain.swapchain,
                                         10000000000000, swapchainSemaphore, 0,
                                         &swapchainImageIndex);
@@ -131,7 +134,7 @@ void vkApp::renderEnd() {
 
     vk::copyImageToImage(buffer, drawImage.image, swapchainImage,
                          {.width = screenW, .height = screenH},
-                         {.width = screenW, .height = screenH}, true);
+                         {.width = screenW - 1, .height = screenH - 1}, true);
 
     vkCommands::transitionImage(buffer, swapchainImage,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -277,9 +280,27 @@ void vkApp::destroyFrameData() {
     }
 }
 void vkApp::prepareUploads(VkCommandBuffer cmd) {
-    auto& queue = getDeletionQueue();
-    for (auto& [copy, staging, buffer] : copyBuffers) {
+    auto& queue = frameData[frameCounter % FRAMES_IN_FLIGHT].deletion;
+
+    VkMemoryBarrier2 barrier{.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2};
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT;
+
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    barrier.dstAccessMask =
+        VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT;
+
+    VkDependencyInfo depInfo{};
+    depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depInfo.pNext = nullptr;
+    depInfo.memoryBarrierCount = 1;
+    depInfo.pMemoryBarriers = &barrier;
+
+    vkCmdPipelineBarrier2(cmd, &depInfo);
+
+    for (auto& [copy, staging, buffer, size] : copyBuffers) {
         vkCmdCopyBuffer(cmd, staging.buffer, buffer, 1, &copy);
+
         queue.addBuffer(staging);
     }
 
@@ -294,7 +315,22 @@ void vkApp::prepareUploads(VkCommandBuffer cmd) {
         queue.addBuffer(staging);
     }
 
+    barrier = {.sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2};
+    barrier.srcStageMask = VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+    barrier.srcAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT;
+
+    barrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+    barrier.dstAccessMask =
+        VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT;
+
+    depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;
+    depInfo.pNext = nullptr;
+    depInfo.memoryBarrierCount = 1;
+    depInfo.pMemoryBarriers = &barrier;
+
     copyBuffers.clear();
     copyImages.clear();
+
+    vkCmdPipelineBarrier2(cmd, &depInfo);
 }
 }  // namespace vk

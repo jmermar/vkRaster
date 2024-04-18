@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 #include <vulkan/vulkan.h>
 #include "vma/vk_mem_alloc.h"
 #include <vector>

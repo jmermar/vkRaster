@@ -1,6 +1,6 @@
 #include "vkInit.hpp"
 
-#include <SDL2/SDL_vulkan.h>
+#include <SDL3/SDL_vulkan.h>
 #include <VkBootstrap.h>
 
 #include "vkUtils.hpp"
@@ -17,7 +17,7 @@ bool vk::initSystem(vkSystem& system, SDL_Window* win) {
     system.instance = vkb_inst.instance;
     system.debug_messenger = vkb_inst.debug_messenger;
 
-    SDL_Vulkan_CreateSurface(win, system.instance, &system.surface);
+    SDL_Vulkan_CreateSurface(win, system.instance, nullptr, &system.surface);
     VkPhysicalDeviceVulkan13Features features{};
     features.dynamicRendering = true;
     features.synchronization2 = true;

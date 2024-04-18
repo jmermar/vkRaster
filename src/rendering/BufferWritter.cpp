@@ -57,7 +57,9 @@ void BufferWritter::writeBuffer(void* data, int size, VkBuffer bufferToWrite) {
     copy.srcOffset = 0;
     copy.size = size;
 
-    app.copyBuffers.push_back(
-        {.copy = copy, .staging = staging, .dest = bufferToWrite});
+    app.copyBuffers.push_back({.copy = copy,
+                               .staging = staging,
+                               .dest = bufferToWrite,
+                               .size = (uint32_t)size});
 }
 }  // namespace vkr

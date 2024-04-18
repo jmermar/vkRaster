@@ -27,6 +27,7 @@ struct vkApp {
         VkBufferCopy copy;
         vk::AllocatedBuffer staging;
         VkBuffer dest;
+        uint32_t size;
     };
 
     struct CopyImageCommand {
@@ -61,9 +62,10 @@ struct vkApp {
 
     inline uint32_t getFrameIndex() { return frameCounter % FRAMES_IN_FLIGHT; }
 
-    inline DeletionQueue& getDeletionQueue() {
-        return frameData[(frameCounter + 1) % FRAMES_IN_FLIGHT].deletion;
-    }
+    DeletionQueue deletion;
+
+    inline uint32_t getScreenW() { return screenW; }
+    inline uint32_t getScreenH() { return screenH; }
 
    private:
     void regenerate();
@@ -71,7 +73,7 @@ struct vkApp {
     void initSwapchain(size_t w, size_t h);
     void initFrameData();
     void initImages(size_t w, size_t h);
-    
+
     void destroyImages();
     void destroySwapchain();
     void destroyFrameData();

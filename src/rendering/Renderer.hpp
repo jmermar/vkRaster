@@ -1,5 +1,5 @@
 #pragma once
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
 
 #include <cstdint>
 #include <glm/glm.hpp>
@@ -11,10 +11,14 @@ struct vkApp;
 
 namespace vkr {
 class BufferWritter;
+class SceneState;
+class UnlitPass;
 class Renderer {
    private:
     vk::vkApp& app;
     BufferWritter* bufferWritter;
+    SceneState* sceneState;
+    UnlitPass* unlitPass;
     Size screenSize;
 
    public:
