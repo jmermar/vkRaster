@@ -17,7 +17,7 @@ It is supposed to contain the next features:
 
 # Build
 
-Right now I dont offer any build info, once the most basic features have been implemented I will so.
+Right now I don't offer any build info, once the most basic features have been implemented I will so.
 
 The project uses CMake for building, but right now not all dependencies are embebbed in the source code, so it is not portable. However, They all
 will be included once the project is in a more matured state.
