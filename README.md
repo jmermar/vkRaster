@@ -17,7 +17,16 @@ It is supposed to contain the next features:
 
 # Build
 
-Right now I don't offer any build info, once the most basic features have been implemented I will so.
+The project is built with CMake and should run either on Windows or Linux (Ubuntu tested).
+It has most of it's sources bundled with it, only depending on:
+- GLM
+- Vulkan (LunarG's Vulkan SDK required)
 
-The project uses CMake for building, but right now not all dependencies are embebbed in the source code, so it is not portable. However, They all
-will be included once the project is in a more matured state.
+Instructions for Linux:
+
+```
+mkdir build &
+cd build &
+cmake .. &
+make
+```
