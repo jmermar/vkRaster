@@ -134,7 +134,7 @@ void vkApp::renderEnd() {
 
     vk::copyImageToImage(buffer, drawImage.image, swapchainImage,
                          {.width = screenW, .height = screenH},
-                         {.width = screenW, .height = screenH}, true);
+                         {.width = screenW - 1, .height = screenH - 1}, true);
 
     vkCommands::transitionImage(buffer, swapchainImage,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,

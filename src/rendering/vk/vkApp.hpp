@@ -64,6 +64,9 @@ struct vkApp {
 
     DeletionQueue deletion;
 
+    inline uint32_t getScreenW() { return screenW; }
+    inline uint32_t getScreenH() { return screenH; }
+
    private:
     void regenerate();
 

@@ -1,0 +1,64 @@
+#version 460
+#extension GL_EXT_nonuniform_qualifier : require
+// size of a workgroup for compute
+layout(local_size_x = 256) in;
+
+struct Instance {
+    mat4 transform;
+    uint firstIndex;
+    uint indexCount;
+    int vertexOffset;
+    uint material;
+};
+
+struct IndexedIndirectCommand {
+    uint indexCount;
+    uint instanceCount;
+    uint firstIndex;
+    int vertexOffset;
+    uint firstInstance;
+};
+
+layout(push_constant) uniform constants {
+    uint indirectDrawBind;
+    uint multiDrawDataBind;
+    uint instanceBind;
+};
+
+layout(binding = 1, std430) writeonly buffer IndirectDraws {
+    IndexedIndirectCommand commands[];
+}
+indirectDraw[];
+
+layout(binding = 1, std430) readonly buffer Instances {
+    IndexedIndirectCommand instances[];
+}
+instances[];
+
+layout(binding = 1, std430) buffer MultiDrawData {
+    uint drawCounts;
+    uint maxDraws;
+}
+multiDrawData[];
+
+void main() {
+    uint gID = gl_GlobalInvocationID.x;
+
+    if (gID < multiDrawData[multiDrawDataBind].maxDraws) {
+        uint index =
+            atomicAdd(multiDrawData[multiDrawDataBind].drawCounts, 1) - 1;
+
+        indirectDraw[indirectDrawBind].commands[index].indexCount =
+            instances[instanceBind].instances[gID].indexCount;
+
+        indirectDraw[indirectDrawBind].commands[index].instanceCount = 1;
+
+        indirectDraw[indirectDrawBind].commands[index].firstIndex =
+            instances[instanceBind].instances[gID].firstIndex;
+
+        indirectDraw[indirectDrawBind].commands[index].vertexOffset =
+            instances[instanceBind].instances[gID].vertexOffset;
+
+        indirectDraw[indirectDrawBind].commands[index].firstInstance = index;
+    }
+}

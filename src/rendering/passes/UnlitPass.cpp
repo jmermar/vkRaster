@@ -102,8 +102,8 @@ void UnlitPass::render(VkCommandBuffer cmd) {
     if (!indexBuffer) {
         return;
     }
-    uint32_t w = 1920;
-    uint32_t h = 1080;
+    uint32_t w = app.getScreenW();
+    uint32_t h = app.getScreenH();
 
     VkRenderingAttachmentInfo colorAttachment = vk::attachmentInfo(
         app.drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_GENERAL);
