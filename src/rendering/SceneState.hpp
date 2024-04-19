@@ -36,6 +36,12 @@ class SceneState {
         uint32_t material;
     };
 
+    struct DrawParams {
+        glm::mat4 transform;
+        uint32_t materialId;
+        uint32_t pad[3];
+    };
+
    private:
     struct MeshAllocationData {
         uint32_t baseIndex{};
@@ -52,9 +58,12 @@ class SceneState {
     vk::AllocatedBuffer drawCommandsBuffer{};
     vk::AllocatedBuffer cmdDrawsBuffer{};
     vk::AllocatedBuffer drawCommandDataBuffer{};
+    vk::AllocatedBuffer drawParamsBuffer{};
+
     StorageBufferDesc drawCommandsBufferDesc{};
     StorageBufferDesc cmdDrawsBufferDesc{};
     StorageBufferDesc drawCommandDataBufferDesc{};
+    StorageBufferDesc drawParamsBufferDesc{};
 
     std::vector<MeshAllocationData> meshesData;
 
@@ -114,12 +123,15 @@ class SceneState {
     inline const StorageBufferDesc& getDrawsCommandsBuffer() {
         return drawCommandsBufferDesc;
     }
+    inline const StorageBufferDesc& getDrawParamsBuffer() {
+        return drawParamsBufferDesc;
+    }
 
     static SceneState& get() { return *instance; }
 
     struct GlobalData {
         glm::mat4 proj, view;
         glm::vec3 clearColor;
-    };
+    } global;
 };
 }  // namespace vkr

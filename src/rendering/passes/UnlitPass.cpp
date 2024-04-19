@@ -4,6 +4,7 @@
 
 struct GPUDrawPushConstants {
     glm::mat4 projViewMatrix;
+    vkr::StorageBind drawParamsBind;
 };
 
 namespace vkr {
@@ -139,7 +140,9 @@ void UnlitPass::render(VkCommandBuffer cmd) {
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     GPUDrawPushConstants push_constatns;
-    push_constatns.projViewMatrix = glm::mat4(1);
+    push_constatns.projViewMatrix =
+        sceneState.global.proj * sceneState.global.view;
+    push_constatns.drawParamsBind = sceneState.getDrawParamsBuffer().bind;
 
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                        sizeof(GPUDrawPushConstants), &push_constatns);

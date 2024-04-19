@@ -7,6 +7,7 @@ struct GPUCullPushConstants {
     StorageBind indirectDrawBind;
     StorageBind multiDrawDataBind;
     StorageBind instancesBind;
+    StorageBind drawParamsBind;
 };
 void CullingPass::buildPipeline() {
     VkPushConstantRange bufferRange{};
@@ -76,6 +77,7 @@ void CullingPass::render(VkCommandBuffer cmd) {
     push.indirectDrawBind = sceneState.getCmdDrawsBuffer().bind;
     push.multiDrawDataBind = sceneState.getDrawsCommandDataBuffer().bind;
     push.instancesBind = sceneState.getDrawsCommandsBuffer().bind;
+    push.drawParamsBind = sceneState.getDrawParamsBuffer().bind;
 
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
                        sizeof(GPUCullPushConstants), &push);

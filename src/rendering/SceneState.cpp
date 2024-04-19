@@ -73,16 +73,24 @@ void SceneState::loadDrawCommandsBuffers() {
         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
+
+    cmdDrawsBufferDesc.buffer = cmdDrawsBuffer.buffer;
+    cmdDrawsBufferDesc.bind = bindStorage(cmdDrawsBuffer.buffer);
+
     drawCommandDataBuffer = vk::createBuffer(
         vma, sizeof(DrawCommandDataBuffer),
         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
-    cmdDrawsBufferDesc.buffer = cmdDrawsBuffer.buffer;
-    cmdDrawsBufferDesc.bind = bindStorage(cmdDrawsBuffer.buffer);
 
     drawCommandDataBufferDesc.buffer = drawCommandDataBuffer.buffer;
     drawCommandDataBufferDesc.bind = bindStorage(drawCommandDataBuffer.buffer);
+
+    drawParamsBuffer = vk::createBuffer(
+        vma, sizeof(DrawParams) * MAX_DRAW_COMMANDS,
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
+    drawParamsBufferDesc.buffer = drawParamsBuffer.buffer;
+    drawParamsBufferDesc.bind = bindStorage(drawParamsBuffer.buffer);
 }
 
 SceneState::SceneState()
