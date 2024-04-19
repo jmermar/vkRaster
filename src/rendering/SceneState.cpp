@@ -73,11 +73,11 @@ void SceneState::loadDrawCommandsBuffers() {
         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
-    drawCommandDataBuffer =
-        vk::createBuffer(vma, sizeof(DrawCommandDataBuffer),
-                         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT |
-                             VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
-                         VMA_MEMORY_USAGE_GPU_ONLY);
+    drawCommandDataBuffer = vk::createBuffer(
+        vma, sizeof(DrawCommandDataBuffer),
+        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+            VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+        VMA_MEMORY_USAGE_GPU_ONLY);
     cmdDrawsBufferDesc.buffer = cmdDrawsBuffer.buffer;
     cmdDrawsBufferDesc.bind = bindStorage(cmdDrawsBuffer.buffer);
 
@@ -110,7 +110,7 @@ void SceneState::update() {
         drawCommandsBufferDesc.bind = {};
 
         if (drawCommands.size() > 0) {
-            uint32_t size = sizeof(drawCommands) * indices.size();
+            uint32_t size = sizeof(DrawCommand) * drawCommands.size();
             drawCommandsBuffer =
                 vk::createBuffer(app.system.allocator, size,
                                  VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
@@ -118,9 +118,9 @@ void SceneState::update() {
                                  VMA_MEMORY_USAGE_GPU_ONLY);
             bufferWritter.writeBuffer(drawCommands.data(), size,
                                       drawCommandsBuffer.buffer);
-            drawCommandDataBufferDesc.buffer = drawCommandDataBuffer.buffer;
-            drawCommandDataBufferDesc.bind =
-                bindStorage(drawCommandDataBuffer.buffer);
+            drawCommandsBufferDesc.buffer = drawCommandsBuffer.buffer;
+            drawCommandsBufferDesc.bind =
+                bindStorage(drawCommandsBuffer.buffer);
         }
     }
     if (meshDirty) {

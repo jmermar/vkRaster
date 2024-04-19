@@ -25,7 +25,8 @@ class SceneState {
    public:
     struct DrawCommandDataBuffer {
         uint32_t drawCounts;
-        uint32_t pad[3];
+        uint32_t maxDraws;
+        uint32_t pad[2];
     };
     struct DrawCommand {
         glm::mat4 transform;
@@ -93,6 +94,8 @@ class SceneState {
 
     inline const VkBuffer& getIndexBuffer() { return indicesBuffer.buffer; }
     inline const VkBuffer& getVertexBuffer() { return verticesBuffer.buffer; }
+
+    inline size_t getNumberOfInstances() { return drawCommands.size(); }
 
     inline const VkDescriptorSetLayout& getDescriptorSetLayout() {
         return descLayout;

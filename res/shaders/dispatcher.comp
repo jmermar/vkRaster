@@ -30,9 +30,7 @@ layout(binding = 1, std430) writeonly buffer IndirectDraws {
 }
 indirectDraw[];
 
-layout(binding = 1, std430) readonly buffer Instances {
-    IndexedIndirectCommand instances[];
-}
+layout(binding = 1, std430) readonly buffer Instances { Instance instances[]; }
 instances[];
 
 layout(binding = 1, std430) buffer MultiDrawData {
@@ -45,8 +43,7 @@ void main() {
     uint gID = gl_GlobalInvocationID.x;
 
     if (gID < multiDrawData[multiDrawDataBind].maxDraws) {
-        uint index =
-            atomicAdd(multiDrawData[multiDrawDataBind].drawCounts, 1) - 1;
+        uint index = atomicAdd(multiDrawData[multiDrawDataBind].drawCounts, 1);
 
         indirectDraw[indirectDrawBind].commands[index].indexCount =
             instances[instanceBind].instances[gID].indexCount;
@@ -59,6 +56,6 @@ void main() {
         indirectDraw[indirectDrawBind].commands[index].vertexOffset =
             instances[instanceBind].instances[gID].vertexOffset;
 
-        indirectDraw[indirectDrawBind].commands[index].firstInstance = index;
+        indirectDraw[indirectDrawBind].commands[index].firstInstance = gID;
     }
 }

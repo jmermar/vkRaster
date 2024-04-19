@@ -79,8 +79,8 @@ void UnlitPass::buildPipelineLayout() {
     pipeline_layout_info.pPushConstantRanges = &bufferRange;
     pipeline_layout_info.pushConstantRangeCount = 1;
     pipeline_layout_info.setLayoutCount = 0;
-    pipeline_layout_info.pSetLayouts = 0;
-    pipeline_layout_info.setLayoutCount = 0;
+    pipeline_layout_info.pSetLayouts = &sceneState.getDescriptorSetLayout();
+    pipeline_layout_info.setLayoutCount = 1;
 
     vkCreatePipelineLayout(app.system.device, &pipeline_layout_info, nullptr,
                            &pipelineLayout);
@@ -116,6 +116,9 @@ void UnlitPass::render(VkCommandBuffer cmd) {
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipelineLayout, 0, 1,
+                            &sceneState.getGlobalDescriptorSet(), 0, 0);
     // set dynamic viewport and scissor
     VkViewport viewport = {};
     viewport.x = 0;
@@ -146,7 +149,10 @@ void UnlitPass::render(VkCommandBuffer cmd) {
     VkDeviceSize offset = 0;
     vkCmdBindVertexBuffers(cmd, 0, 1, &sceneState.getVertexBuffer(), &offset);
 
-    vkCmdDrawIndexed(cmd, 3, 1, 0, 0, 0);
+    vkCmdDrawIndexedIndirectCount(cmd, sceneState.getCmdDrawsBuffer().buffer, 0,
+                                  sceneState.getDrawsCommandDataBuffer().buffer,
+                                  0, MAX_DRAW_COMMANDS,
+                                  sizeof(VkDrawIndexedIndirectCommand));
     vkCmdEndRendering(cmd);
 }
 }  // namespace vkr

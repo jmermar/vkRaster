@@ -13,12 +13,14 @@ namespace vkr {
 class BufferWritter;
 class SceneState;
 class UnlitPass;
+class CullingPass;
 class Renderer {
    private:
     vk::vkApp& app;
     BufferWritter* bufferWritter;
     SceneState* sceneState;
     UnlitPass* unlitPass;
+    CullingPass* cullingPass;
     Size screenSize;
 
    public:
