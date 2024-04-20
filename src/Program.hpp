@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
 
-#include "rendering/Renderer.hpp"
 #include "System.hpp"
+#include "rendering/Renderer.hpp"
 #include "types.hpp"
 namespace vkr {
 class Program {
@@ -15,6 +15,12 @@ class Program {
    protected:
     glm::mat4 proj, view;
     glm::vec3 clearColor;
+
+    inline bool isKeyPressed(SDL_Scancode key) {
+        return system.isKeyPressed(key);
+    }
+
+    inline bool isKeyDown(SDL_Scancode key) { return system.isKeyDown(key); }
 
     void loadScene(const char* scene);
     virtual void onFrame(float deltaTime) = 0;

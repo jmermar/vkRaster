@@ -4,6 +4,7 @@
 
 struct GPUDrawPushConstants {
     glm::mat4 projViewMatrix;
+    vkr::StorageBind drawParamsBind;
 };
 
 namespace vkr {
@@ -79,8 +80,8 @@ void UnlitPass::buildPipelineLayout() {
     pipeline_layout_info.pPushConstantRanges = &bufferRange;
     pipeline_layout_info.pushConstantRangeCount = 1;
     pipeline_layout_info.setLayoutCount = 0;
-    pipeline_layout_info.pSetLayouts = 0;
-    pipeline_layout_info.setLayoutCount = 0;
+    pipeline_layout_info.pSetLayouts = &sceneState.getBounds().getLayout();
+    pipeline_layout_info.setLayoutCount = 1;
 
     vkCreatePipelineLayout(app.system.device, &pipeline_layout_info, nullptr,
                            &pipelineLayout);
@@ -98,7 +99,7 @@ UnlitPass::~UnlitPass() {
     }
 }
 void UnlitPass::render(VkCommandBuffer cmd) {
-    auto indexBuffer = sceneState.getIndexBuffer();
+    auto indexBuffer = sceneState.getIndices().getBuffer();
     if (!indexBuffer) {
         return;
     }
@@ -116,6 +117,9 @@ void UnlitPass::render(VkCommandBuffer cmd) {
 
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 
+    vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipelineLayout, 0, 1,
+                            &sceneState.getBounds().getDescriptor(), 0, 0);
     // set dynamic viewport and scissor
     VkViewport viewport = {};
     viewport.x = 0;
@@ -136,17 +140,23 @@ void UnlitPass::render(VkCommandBuffer cmd) {
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     GPUDrawPushConstants push_constatns;
-    push_constatns.projViewMatrix = glm::mat4(1);
+    push_constatns.projViewMatrix =
+        sceneState.global.proj * sceneState.global.view;
+    push_constatns.drawParamsBind = sceneState.getDrawParams().getBindPoint();
 
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                        sizeof(GPUDrawPushConstants), &push_constatns);
-    vkCmdBindIndexBuffer(cmd, sceneState.getIndexBuffer(), 0,
+    vkCmdBindIndexBuffer(cmd, sceneState.getIndices().getBuffer(), 0,
                          VK_INDEX_TYPE_UINT32);
 
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(cmd, 0, 1, &sceneState.getVertexBuffer(), &offset);
+    vkCmdBindVertexBuffers(cmd, 0, 1, &sceneState.getVertices().getBuffer(),
+                           &offset);
 
-    vkCmdDrawIndexed(cmd, 3, 1, 0, 0, 0);
+    vkCmdDrawIndexedIndirectCount(cmd, sceneState.getCmdDraws().getBuffer(), 0,
+                                  sceneState.getDrawCommandData().getBuffer(),
+                                  0, MAX_DRAW_COMMANDS,
+                                  sizeof(VkDrawIndexedIndirectCommand));
     vkCmdEndRendering(cmd);
 }
 }  // namespace vkr

@@ -5,6 +5,7 @@
 
 #include "BufferWritter.hpp"
 #include "SceneState.hpp"
+#include "passes/CullingPass.hpp"
 #include "passes/UnlitPass.hpp"
 #include "vk/vkApp.hpp"
 #include "vk/vkCommand.hpp"
@@ -16,11 +17,13 @@ Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
     bufferWritter = new BufferWritter();
     sceneState = new SceneState();
     unlitPass = new UnlitPass();
+    cullingPass = new CullingPass();
     screenSize = {w, h};
 }
 
 Renderer::~Renderer() {
     vkDeviceWaitIdle(app.system.device);
+    delete cullingPass;
     delete unlitPass;
     delete sceneState;
     delete bufferWritter;
@@ -41,6 +44,8 @@ void Renderer::render(glm::vec4 clearColor) {
     auto renderSemaphore = frame.renderSemaphore;
     auto swapchainSemaphore = frame.swapchainSemaphore;
     auto buffer = frame.buffer;
+
+    cullingPass->render(buffer);
 
     vkCommands::transitionImage(buffer, app.drawImage.image,
                                 VK_IMAGE_LAYOUT_UNDEFINED,

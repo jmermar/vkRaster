@@ -6,9 +6,23 @@
 #include <stdexcept>
 
 #include "System.hpp"
+#include "rendering/SceneState.hpp"
 
 namespace vkr {
-void Program::loadScene(const char* sceneName) {}
+void Program::loadScene(const char* sceneName) {
+    auto scene = vkr::loadScene(sceneName);
+
+    uint8_t data[4] = {0, 255, 0, 0};
+
+    for (auto& mesh : scene.meshes) {
+        SceneState::get().allocateMesh(mesh);
+    }
+
+    for (auto& ins : scene.instances) {
+        SceneState::get().addInstance((vkr::BufferHandle)ins.meshID,
+                                      ins.transform);
+    }
+}
 Program::Program(const Size& size, const char* name)
     : size(size), winName(name) {}
 Program::~Program() {}
@@ -25,6 +39,9 @@ void Program::run() {
             system.handleInput(shouldQuit);
 
             onFrame(delta);
+
+            SceneState::get().global.proj = proj;
+            SceneState::get().global.view = view;
 
             renderer.render(glm::vec4(clearColor, 1.0));
         }

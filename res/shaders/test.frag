@@ -1,10 +1,11 @@
 #version 450
 
-//output write
-layout (location = 0) out vec4 outFragColor;
+// output write
+layout(location = 0) out vec4 outFragColor;
 
-void main() 
-{
-	//return red
-	outFragColor = vec4(1.0f);
+layout(binding = 2) uniform sampler2D textures[];
+
+void main() {
+    // return red
+    outFragColor = texture(textures[1], vec2(1, 1));
 }

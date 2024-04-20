@@ -33,6 +33,7 @@ bool vk::initSystem(vkSystem& system, SDL_Window* win) {
     features12.descriptorBindingUniformBufferUpdateAfterBind = true;
     features12.shaderStorageBufferArrayNonUniformIndexing = true;
     features12.descriptorBindingStorageBufferUpdateAfterBind = true;
+    features12.drawIndirectCount = true;
 
     VkPhysicalDeviceFeatures features10{};
     features10.multiDrawIndirect = true;
