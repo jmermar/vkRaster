@@ -22,7 +22,7 @@ PushConstants;
 struct DrawParam {
     mat4 transform;
     uint material;
-    int pad[3];
+    uint pad[3];
 };
 layout(binding = 1, std430) readonly buffer DrawParams { DrawParam params[]; }
 drawParams[];

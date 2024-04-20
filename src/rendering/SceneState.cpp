@@ -30,7 +30,6 @@ void SceneState::update() {
     drawCommands.update();
     drawCommandData.update();
     cmdDraws.update();
-    drawCommandData.update();
     drawParams.update();
     materials.update();
     vertices.update();
@@ -38,19 +37,13 @@ void SceneState::update() {
 }
 void SceneState::clearScene() {
     clearMeshes();
-    bounds.clearBounds();
 
     drawCommands.clear();
-    drawCommandData.clear();
-    cmdDraws.clear();
-    drawCommandData.clear();
-    drawParams.clear();
     materials.clear();
-    vertices.clear();
-    indices.clear();
 
     for (auto t : textures) {
         app.deletion.addImage(t->image);
+        bounds.removeBind(t->bindPoint);
         delete t;
     }
     textures.clear();

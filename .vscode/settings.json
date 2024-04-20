@@ -68,7 +68,8 @@
     "streambuf": "cpp",
     "thread": "cpp",
     "typeinfo": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "unordered_set": "cpp"
   },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "xaver.clang-format"

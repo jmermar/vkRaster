@@ -3,18 +3,16 @@
 #include <SceneLoader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <stdexcept>
 
 #include "System.hpp"
 #include "rendering/SceneState.hpp"
-
 namespace vkr {
 void Program::loadScene(const char* sceneName, const TransformData& tdata) {
     auto scene = vkr::loadScene(sceneName);
 
     SceneState::get().clearScene();
-
-    uint8_t data[4] = {0, 255, 0, 0};
 
     std::vector<vkr::TextureData*> textures;
     textures.reserve(scene.textures.size());
@@ -27,7 +25,7 @@ void Program::loadScene(const char* sceneName, const TransformData& tdata) {
 
     for (auto& material : scene.materials) {
         SceneState::MaterialData data;
-        data.texture = material.texture >= 0
+        data.texture = (material.texture >= 0)
                            ? textures[material.texture]->bindPoint
                            : (TextureBind)0;
         data.color = material.color;
