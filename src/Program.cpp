@@ -12,6 +12,8 @@ namespace vkr {
 void Program::loadScene(const char* sceneName) {
     auto scene = vkr::loadScene(sceneName);
 
+    uint8_t data[4] = {0, 255, 0, 0};
+
     for (auto& mesh : scene.meshes) {
         SceneState::get().allocateMesh(mesh);
     }

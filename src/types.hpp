@@ -28,8 +28,18 @@ struct Vertex {
     glm::vec4 color;
 };
 
+struct ImageData {
+    uint32_t width{}, height{};
+    std::vector<uint32_t> data{};
+};
+
 struct MeshData {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
+};
+
+struct Material {
+    glm::mat4 color;
+    uint32_t texture;
 };
 }  // namespace vkr

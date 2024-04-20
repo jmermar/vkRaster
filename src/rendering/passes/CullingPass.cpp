@@ -19,7 +19,7 @@ void CullingPass::buildPipeline() {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO};
     layoutCreate.pushConstantRangeCount = 1;
     layoutCreate.pPushConstantRanges = &bufferRange;
-    layoutCreate.pSetLayouts = &sceneState.getDescriptorSetLayout();
+    layoutCreate.pSetLayouts = &sceneState.getBounds().getLayout();
     layoutCreate.setLayoutCount = 1;
 
     vkCreatePipelineLayout(app.system.device, &layoutCreate, 0,
@@ -63,26 +63,27 @@ void CullingPass::render(VkCommandBuffer cmd) {
 
     vkCmdPipelineBarrier2(cmd, &depInfo);
 
-    vkCmdFillBuffer(cmd, sceneState.getDrawsCommandDataBuffer().buffer,
+    vkCmdFillBuffer(cmd, sceneState.getDrawCommandData().getBuffer(),
                     offsetof(SceneState::DrawCommandDataBuffer, drawCounts),
                     sizeof(uint32_t), 0);
-    vkCmdFillBuffer(cmd, sceneState.getDrawsCommandDataBuffer().buffer,
+    vkCmdFillBuffer(cmd, sceneState.getDrawCommandData().getBuffer(),
                     offsetof(SceneState::DrawCommandDataBuffer, maxDraws),
-                    sizeof(uint32_t), sceneState.getNumberOfInstances());
+                    sizeof(uint32_t), sceneState.getDrawCommands().getSize());
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout,
-                            0, 1, &sceneState.getGlobalDescriptorSet(), 0, 0);
+                            0, 1, &sceneState.getBounds().getDescriptor(), 0,
+                            0);
 
     GPUCullPushConstants push;
-    push.indirectDrawBind = sceneState.getCmdDrawsBuffer().bind;
-    push.multiDrawDataBind = sceneState.getDrawsCommandDataBuffer().bind;
-    push.instancesBind = sceneState.getDrawsCommandsBuffer().bind;
-    push.drawParamsBind = sceneState.getDrawParamsBuffer().bind;
+    push.indirectDrawBind = sceneState.getCmdDraws().getBindPoint();
+    push.multiDrawDataBind = sceneState.getDrawCommandData().getBindPoint();
+    push.instancesBind = sceneState.getDrawCommands().getBindPoint();
+    push.drawParamsBind = sceneState.getDrawParams().getBindPoint();
 
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
                        sizeof(GPUCullPushConstants), &push);
 
-    vkCmdDispatch(cmd, sceneState.getNumberOfInstances(), 1, 1);
+    vkCmdDispatch(cmd, sceneState.getDrawCommands().getSize(), 1, 1);
 
     memoryBarrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
     memoryBarrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;

@@ -80,7 +80,7 @@ void UnlitPass::buildPipelineLayout() {
     pipeline_layout_info.pPushConstantRanges = &bufferRange;
     pipeline_layout_info.pushConstantRangeCount = 1;
     pipeline_layout_info.setLayoutCount = 0;
-    pipeline_layout_info.pSetLayouts = &sceneState.getDescriptorSetLayout();
+    pipeline_layout_info.pSetLayouts = &sceneState.getBounds().getLayout();
     pipeline_layout_info.setLayoutCount = 1;
 
     vkCreatePipelineLayout(app.system.device, &pipeline_layout_info, nullptr,
@@ -99,7 +99,7 @@ UnlitPass::~UnlitPass() {
     }
 }
 void UnlitPass::render(VkCommandBuffer cmd) {
-    auto indexBuffer = sceneState.getIndexBuffer();
+    auto indexBuffer = sceneState.getIndices().getBuffer();
     if (!indexBuffer) {
         return;
     }
@@ -119,7 +119,7 @@ void UnlitPass::render(VkCommandBuffer cmd) {
 
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS,
                             pipelineLayout, 0, 1,
-                            &sceneState.getGlobalDescriptorSet(), 0, 0);
+                            &sceneState.getBounds().getDescriptor(), 0, 0);
     // set dynamic viewport and scissor
     VkViewport viewport = {};
     viewport.x = 0;
@@ -142,18 +142,19 @@ void UnlitPass::render(VkCommandBuffer cmd) {
     GPUDrawPushConstants push_constatns;
     push_constatns.projViewMatrix =
         sceneState.global.proj * sceneState.global.view;
-    push_constatns.drawParamsBind = sceneState.getDrawParamsBuffer().bind;
+    push_constatns.drawParamsBind = sceneState.getDrawParams().getBindPoint();
 
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
                        sizeof(GPUDrawPushConstants), &push_constatns);
-    vkCmdBindIndexBuffer(cmd, sceneState.getIndexBuffer(), 0,
+    vkCmdBindIndexBuffer(cmd, sceneState.getIndices().getBuffer(), 0,
                          VK_INDEX_TYPE_UINT32);
 
     VkDeviceSize offset = 0;
-    vkCmdBindVertexBuffers(cmd, 0, 1, &sceneState.getVertexBuffer(), &offset);
+    vkCmdBindVertexBuffers(cmd, 0, 1, &sceneState.getVertices().getBuffer(),
+                           &offset);
 
-    vkCmdDrawIndexedIndirectCount(cmd, sceneState.getCmdDrawsBuffer().buffer, 0,
-                                  sceneState.getDrawsCommandDataBuffer().buffer,
+    vkCmdDrawIndexedIndirectCount(cmd, sceneState.getCmdDraws().getBuffer(), 0,
+                                  sceneState.getDrawCommandData().getBuffer(),
                                   0, MAX_DRAW_COMMANDS,
                                   sizeof(VkDrawIndexedIndirectCommand));
     vkCmdEndRendering(cmd);

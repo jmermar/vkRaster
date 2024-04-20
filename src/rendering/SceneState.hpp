@@ -1,18 +1,25 @@
 #pragma once
 
 #include "../types.hpp"
+#include "BufferWritter.hpp"
+#include "GlobalBounds.hpp"
+#include "StorageGPUVector.hpp"
 #include "vk/vkApp.hpp"
 #include "vk/vkDescriptors.hpp"
 
 namespace vkr {
 class BufferWritter;
-using BufferHandle = uint32_t;
 class Renderer;
 
-enum StorageBind : uint32_t;
-enum UniformBind : uint32_t;
-enum TextureBind : uint32_t;
+using BufferHandle = uint32_t;
+using MaterialHandle = uint32_t;
+
 constexpr uint32_t MAX_DRAW_COMMANDS = 1024 * 1024;
+
+struct TextureData {
+    vk::AllocatedImage image;
+    TextureBind bindPoint;
+};
 
 struct StorageBufferDesc {
     StorageBind bind{};
@@ -42,6 +49,12 @@ class SceneState {
         uint32_t pad[3];
     };
 
+    struct MaterialData {
+        glm::vec4 color;
+        TextureBind texture;
+        uint32_t pad[3];
+    };
+
    private:
     struct MeshAllocationData {
         uint32_t baseIndex{};
@@ -53,34 +66,19 @@ class SceneState {
     vk::vkApp& app;
     BufferWritter& bufferWritter;
 
-    std::vector<DrawCommand> drawCommands;
-    bool drawCommandsDirty{};
-    vk::AllocatedBuffer drawCommandsBuffer{};
-    vk::AllocatedBuffer cmdDrawsBuffer{};
-    vk::AllocatedBuffer drawCommandDataBuffer{};
-    vk::AllocatedBuffer drawParamsBuffer{};
+    GlobalBounds bounds;
 
-    StorageBufferDesc drawCommandsBufferDesc{};
-    StorageBufferDesc cmdDrawsBufferDesc{};
-    StorageBufferDesc drawCommandDataBufferDesc{};
-    StorageBufferDesc drawParamsBufferDesc{};
+    StorageGPUVector<DrawCommand> drawCommands{0, bounds};
+    StorageGPUVector<VkDrawIndexedIndirectCommand> cmdDraws{
+        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, bounds, MAX_DRAW_COMMANDS};
+    StorageGPUVector<DrawCommandDataBuffer> drawCommandData{
+        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, bounds, 1};
+    StorageGPUVector<DrawParams> drawParams{0, bounds, MAX_DRAW_COMMANDS};
+    StorageGPUVector<MaterialData> materials{0, bounds};
+    StorageGPUVector<Vertex> vertices{VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
+    StorageGPUVector<uint32_t> indices{VK_BUFFER_USAGE_INDEX_BUFFER_BIT};
 
     std::vector<MeshAllocationData> meshesData;
-
-    std::vector<Vertex> vertices;
-    std::vector<uint32_t> indices;
-    vk::AllocatedBuffer verticesBuffer{};
-    vk::AllocatedBuffer indicesBuffer{};
-    bool meshDirty{};
-
-    vk::DescriptorAllocator descAlloc;
-    VkDescriptorSetLayout descLayout;
-    VkDescriptorSet descriptor;
-    std::vector<bool> storageBounds;
-    std::vector<bool> uniformBounds;
-
-    void loadDescriptors();
-    void loadDrawCommandsBuffers();
 
     SceneState();
 
@@ -92,40 +90,35 @@ class SceneState {
     BufferHandle allocateMesh(const MeshData& data);
     void clearMeshes();
 
-    void addInstance(BufferHandle mesh, const glm::mat4& transform);
-    void clearInstances();
+    TextureData* allocateTexture(void* data, VkExtent3D size, VkFormat format,
+                                 VkImageUsageFlags usage,
+                                 GlobalBounds::SamplerType sampler);
+    void freeTexture(TextureData* data);
 
-    UniformBind bindUniform(VkBuffer buffer);
-    StorageBind bindStorage(VkBuffer buffer);
+    void addInstance(BufferHandle mesh, const glm::mat4& transform) {
+        auto& buffer = meshesData[mesh];
 
-    void removeBind(UniformBind bind);
-    void removeBind(StorageBind bind);
-
-    inline const VkBuffer& getIndexBuffer() { return indicesBuffer.buffer; }
-    inline const VkBuffer& getVertexBuffer() { return verticesBuffer.buffer; }
-
-    inline size_t getNumberOfInstances() { return drawCommands.size(); }
-
-    inline const VkDescriptorSetLayout& getDescriptorSetLayout() {
-        return descLayout;
+        DrawCommand dc{.transform = transform,
+                       .firstIndex = buffer.baseIndex,
+                       .indexCount = buffer.indicesCount,
+                       .vertexOffset = (int32_t)buffer.baseVertex,
+                       .material = 0};
+        drawCommands.add(dc);
     }
 
-    inline const VkDescriptorSet& getGlobalDescriptorSet() {
-        return descriptor;
+    StorageGPUVector<DrawCommand>& getDrawCommands() { return drawCommands; };
+    StorageGPUVector<VkDrawIndexedIndirectCommand>& getCmdDraws() {
+        return cmdDraws;
     }
+    StorageGPUVector<DrawCommandDataBuffer>& getDrawCommandData() {
+        return drawCommandData;
+    }
+    StorageGPUVector<DrawParams>& getDrawParams() { return drawParams; }
+    StorageGPUVector<MaterialData>& getMaterials() { return materials; }
+    StorageGPUVector<Vertex>& getVertices() { return vertices; }
+    StorageGPUVector<uint32_t>& getIndices() { return indices; }
 
-    inline const StorageBufferDesc& getCmdDrawsBuffer() {
-        return cmdDrawsBufferDesc;
-    }
-    inline const StorageBufferDesc& getDrawsCommandDataBuffer() {
-        return drawCommandDataBufferDesc;
-    }
-    inline const StorageBufferDesc& getDrawsCommandsBuffer() {
-        return drawCommandsBufferDesc;
-    }
-    inline const StorageBufferDesc& getDrawParamsBuffer() {
-        return drawParamsBufferDesc;
-    }
+    GlobalBounds& getBounds() { return bounds; }
 
     static SceneState& get() { return *instance; }
 

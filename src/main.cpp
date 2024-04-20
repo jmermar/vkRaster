@@ -13,7 +13,7 @@ class MyProgram : public vkr::Program {
 
         proj =
             glm::perspective(45.f, (float)WIDTH / (float)HEIGHT, 0.05f, 1000.f);
-        view = glm::lookAt(glm::vec3(10, 10, 10), glm::vec3(0),
+        view = glm::lookAt(glm::vec3(20, 10, 20), glm::vec3(0),
                            glm::vec3(0, 1, 0));
         clearColor = glm::vec3(0, 0, 0.4);
     }
