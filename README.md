@@ -7,7 +7,8 @@ Simple Vulkan Renderer That I've began to work on. The purpose is to learn about
 # Features
 
 The program is aimed to minimize as much draw processing as possible in the cpu side, by implementing techniques such as indirect draws, double buffering and compute based culling.
-Right now it can display untextured gltf scenes with a FPS camera, with the gltf model path being hardcoded on the main.cpp file.
+
+Right now it can display unlit gltf scenes with a FPS camera, with the gltf scene paths being hardcoded on the main.cpp file.
 
 | Feature | Progress |
 | - | - |
