@@ -9,7 +9,8 @@ Right now it can display untextured gltf scenes with a FPS camera, with the gltf
 
 | Feature | Progress |
 | - | - |
-| gltf scene loading | Implemented without materials and textures |
+| Textures | Implemented |
+| gltf scene loading | Implemented with unlit textures |
 | Compute based culling | Not yet |
 | Defferred rendering | Not yet |
 | PBR Materials | Not yet |
