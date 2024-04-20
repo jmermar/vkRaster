@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 namespace vkr {
-glm::mat4 TransformData::getTransform() {
+glm::mat4 TransformData::getTransform() const {
     glm::mat4 scaleMatrix = glm::scale(glm::mat4(1), scale);
 
     glm::mat4 rotationMatrix =

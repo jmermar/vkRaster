@@ -20,7 +20,12 @@ SceneState::SceneState()
     : app(vk::vkApp::get()), bufferWritter(BufferWritter::get()) {
     instance = this;
 }
-SceneState::~SceneState() {}
+SceneState::~SceneState() {
+    for (auto t : textures) {
+        app.deletion.addImage(t->image);
+        delete t;
+    }
+}
 void SceneState::update() {
     drawCommands.update();
     drawCommandData.update();
@@ -30,6 +35,25 @@ void SceneState::update() {
     materials.update();
     vertices.update();
     indices.update();
+}
+void SceneState::clearScene() {
+    clearMeshes();
+    bounds.clearBounds();
+
+    drawCommands.clear();
+    drawCommandData.clear();
+    cmdDraws.clear();
+    drawCommandData.clear();
+    drawParams.clear();
+    materials.clear();
+    vertices.clear();
+    indices.clear();
+
+    for (auto t : textures) {
+        app.deletion.addImage(t->image);
+        delete t;
+    }
+    textures.clear();
 }
 BufferHandle SceneState::allocateMesh(const MeshData& data) {
     uint32_t baseVertex = vertices.getSize();
@@ -64,13 +88,14 @@ TextureData* SceneState::allocateTexture(
     bufferWritter.writeImage(data, ret->image.image, size);
 
     ret->bindPoint = bounds.bindTexture(ret->image.imageView, samplerType);
-
+    textures.insert(ret);
     return ret;
 }
 
 void SceneState::freeTexture(TextureData* data) {
     bounds.removeBind(data->bindPoint);
     app.deletion.addImage(data->image);
+    textures.erase(data);
     delete data;
 }
 }  // namespace vkr

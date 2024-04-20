@@ -9,17 +9,20 @@ layout(location = 3) in vec3 vColor;
 
 layout(location = 0) out vec3 outColor;
 layout(location = 1) out vec2 outUV;
+layout(location = 2) out flat uint material;
 
 // push constants block
 layout(push_constant) uniform constants {
     mat4 projView;
     uint drawParamsBind;
+    uint materialsBind;
 }
 PushConstants;
 
 struct DrawParam {
     mat4 transform;
-    int pad[4];
+    uint material;
+    int pad[3];
 };
 layout(binding = 1, std430) readonly buffer DrawParams { DrawParam params[]; }
 drawParams[];
@@ -27,6 +30,9 @@ drawParams[];
 void main() {
     DrawParam drawParam =
         drawParams[PushConstants.drawParamsBind].params[gl_InstanceIndex];
+
+    material = drawParam.material;
+
     gl_Position =
         PushConstants.projView * drawParam.transform * vec4(vPosition, 1.0f);
     outColor = vColor;

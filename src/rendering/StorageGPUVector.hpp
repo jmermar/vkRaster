@@ -22,12 +22,18 @@ class StorageGPUVector {
     VkBufferUsageFlags usage;
     bool bind{};
 
+    size_t initialSize;
+
    public:
     using Handle = uint32_t;
     StorageGPUVector(VkBufferUsageFlags usage,
                      GlobalBounds& bounds = *((GlobalBounds*)0),
                      size_t initialSize = 0)
-        : usage(usage), dirty(true), app(vk::vkApp::get()), bounds(&bounds) {
+        : usage(usage),
+          dirty(true),
+          app(vk::vkApp::get()),
+          bounds(&bounds),
+          initialSize(initialSize) {
         data.resize(initialSize);
         bind = this->bounds;
     }
@@ -41,8 +47,9 @@ class StorageGPUVector {
                 bounds->removeBind(bindPoint);
                 bindPoint = (StorageBind)0;
             }
-            if (data.size() > 0) {
-                size_t size = sizeof(T) * data.size();
+            if (data.size() > 0 || initialSize > 0) {
+                size_t size =
+                    sizeof(T) * (initialSize > 0 ? initialSize : data.size());
                 buffer = vk::createBuffer(
                     app.system.allocator, size,
                     VK_BUFFER_USAGE_TRANSFER_DST_BIT |
@@ -65,7 +72,7 @@ class StorageGPUVector {
 
     void clear() {
         data.clear();
-        dirty = false;
+        dirty = true;
     }
 
     inline size_t getSize() { return data.size(); }

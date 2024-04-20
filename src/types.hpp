@@ -29,13 +29,14 @@ struct Vertex {
 };
 
 struct ImageData {
-    uint32_t width{}, height{};
-    std::vector<uint32_t> data{};
+    uint32_t width{}, height{}, channels{4};
+    std::vector<uint8_t> data{};
 };
 
 struct TransformData {
-    glm::vec3 position, rotation, scale;
-    glm::mat4 getTransform();
+    glm::vec3 position{0.f, 0.f, 0.f}, rotation{0.f, 0.f, 0.f},
+        scale{1.f, 1.f, 1.f};
+    glm::mat4 getTransform() const;
 };
 struct CameraData {
     glm::vec3 position{0.f, 0.f, 0.f};
@@ -59,8 +60,8 @@ struct MeshData {
     std::vector<uint32_t> indices;
 };
 
-struct Material {
-    glm::mat4 color;
-    uint32_t texture;
+struct MaterialData {
+    glm::vec4 color;
+    int32_t texture;
 };
 }  // namespace vkr

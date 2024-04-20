@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_set>
+
 #include "../types.hpp"
 #include "BufferWritter.hpp"
 #include "GlobalBounds.hpp"
@@ -55,6 +57,8 @@ class SceneState {
         uint32_t pad[3];
     };
 
+    using MaterialHandle = StorageGPUVector<MaterialData>::Handle;
+
    private:
     struct MeshAllocationData {
         uint32_t baseIndex{};
@@ -80,12 +84,16 @@ class SceneState {
 
     std::vector<MeshAllocationData> meshesData;
 
+    std::unordered_set<TextureData*> textures;
+
     SceneState();
 
    public:
     ~SceneState();
 
     void update();
+
+    void clearScene();
 
     BufferHandle allocateMesh(const MeshData& data);
     void clearMeshes();
@@ -95,14 +103,15 @@ class SceneState {
                                  GlobalBounds::SamplerType sampler);
     void freeTexture(TextureData* data);
 
-    void addInstance(BufferHandle mesh, const glm::mat4& transform) {
+    void addInstance(BufferHandle mesh, const glm::mat4& transform,
+                     MaterialHandle material) {
         auto& buffer = meshesData[mesh];
 
         DrawCommand dc{.transform = transform,
                        .firstIndex = buffer.baseIndex,
                        .indexCount = buffer.indicesCount,
                        .vertexOffset = (int32_t)buffer.baseVertex,
-                       .material = 0};
+                       .material = material};
         drawCommands.add(dc);
     }
 

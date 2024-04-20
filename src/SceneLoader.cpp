@@ -46,8 +46,11 @@ void loadNode(SceneData& scene, std::vector<LoadMeshData>& meshes,
 
     if (inputNode.mesh > -1) {
         auto& mesh = meshes[inputNode.mesh];
+        int i = 0;
         for (auto& primitive : mesh.primitives) {
-            scene.instances.push_back({(size_t)primitive, transform});
+            size_t material =
+                input.meshes[inputNode.mesh].primitives[i++].material;
+            scene.instances.push_back({(size_t)primitive, transform, material});
         }
     }
 }
@@ -72,6 +75,38 @@ SceneData loadScene(const std::string& path) {
     }
     if (!ret) {
         throw std::runtime_error("Cannot load scene " + fullPath);
+    }
+
+    // Load textures
+
+    for (auto& image : model.images) {
+        auto& imageData = retScene.textures.emplace_back();
+
+        imageData.width = image.width;
+        imageData.height = image.height;
+        imageData.channels = image.component;
+        auto size = imageData.width * imageData.height * imageData.channels;
+        imageData.data.resize(size);
+        memcpy(imageData.data.data(), image.image.data(), size);
+    }
+
+    // Load materials
+
+    for (auto& material : model.materials) {
+        auto& materialData = retScene.materials.emplace_back();
+        materialData.texture = -1;
+        materialData.color = glm::vec4(1);
+        if (material.values.find("baseColorTexture") != material.values.end()) {
+            materialData.texture =
+                material.values["baseColorTexture"].TextureIndex();
+        }
+
+        if (material.values.find("baseColorFactor") != material.values.end()) {
+            auto color = material.values["baseColorFactor"].ColorFactor();
+            materialData.color.r = color[0];
+            materialData.color.g = color[1];
+            materialData.color.b = color[2];
+        }
     }
 
     // Load meshes
@@ -218,7 +253,9 @@ SceneData loadScene(const std::string& path) {
 
     std::cout << "Loaded scene from " << fullPath << ".\n";
     std::cout << "- " << retScene.meshes.size() << " meshes loaded.\n"
-              << "- " << retScene.instances.size() << " nodes loaded."
+              << "- " << retScene.instances.size() << " nodes loaded.\n"
+              << "- " << retScene.materials.size() << " materials loaded.\n"
+              << "- " << retScene.textures.size() << " textures loaded."
               << std::endl;
 
     return retScene;

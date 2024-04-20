@@ -21,7 +21,8 @@ struct IndexedIndirectCommand {
 
 struct DrawParam {
     mat4 transform;
-    int pad[4];
+    uint material;
+    int pad[3];
 };
 layout(binding = 1, std430) writeonly buffer DrawParams { DrawParam params[]; }
 drawParams[];
@@ -68,5 +69,7 @@ void main() {
 
         drawParams[drawParamsBind].params[index].transform =
             instances[instanceBind].instances[gID].transform;
+        drawParams[drawParamsBind].params[index].material =
+            instances[instanceBind].instances[gID].material;
     }
 }

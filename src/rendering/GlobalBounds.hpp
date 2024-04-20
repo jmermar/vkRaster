@@ -36,6 +36,8 @@ class GlobalBounds {
     void removeBind(UniformBind bind);
     void removeBind(StorageBind bind);
 
+    void clearBounds();
+
     const VkDescriptorSet& getDescriptor() { return descriptor; }
     const VkDescriptorSetLayout& getLayout() { return descLayout; }
 };

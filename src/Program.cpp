@@ -9,18 +9,41 @@
 #include "rendering/SceneState.hpp"
 
 namespace vkr {
-void Program::loadScene(const char* sceneName) {
+void Program::loadScene(const char* sceneName, const TransformData& tdata) {
     auto scene = vkr::loadScene(sceneName);
 
+    SceneState::get().clearScene();
+
     uint8_t data[4] = {0, 255, 0, 0};
+
+    std::vector<vkr::TextureData*> textures;
+    textures.reserve(scene.textures.size());
+    for (auto& texture : scene.textures) {
+        textures.push_back(SceneState::get().allocateTexture(
+            texture.data.data(),
+            {.width = texture.width, .height = texture.height, .depth = 1},
+            VK_FORMAT_R8G8B8A8_UNORM, 0, vkr::GlobalBounds::SAMPLER_NEAREST));
+    }
+
+    for (auto& material : scene.materials) {
+        SceneState::MaterialData data;
+        data.texture = material.texture >= 0
+                           ? textures[material.texture]->bindPoint
+                           : (TextureBind)0;
+        data.color = material.color;
+
+        SceneState::get().getMaterials().add(data);
+    }
 
     for (auto& mesh : scene.meshes) {
         SceneState::get().allocateMesh(mesh);
     }
 
     for (auto& ins : scene.instances) {
-        SceneState::get().addInstance((vkr::BufferHandle)ins.meshID,
-                                      ins.transform);
+        auto t = tdata.getTransform() * ins.transform;
+
+        SceneState::get().addInstance((vkr::BufferHandle)ins.meshID, t,
+                                      ins.materialID);
     }
 }
 Program::Program(const Size& size, const char* name)

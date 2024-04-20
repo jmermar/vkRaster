@@ -22,7 +22,7 @@ class Program {
 
     inline bool isKeyDown(SDL_Scancode key) { return system.isKeyDown(key); }
 
-    void loadScene(const char* scene);
+    void loadScene(const char* scene, const TransformData& data);
     virtual void onFrame(float deltaTime) = 0;
 
    public:

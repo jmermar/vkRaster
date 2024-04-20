@@ -1,9 +1,10 @@
 #include "vkPipelines.hpp"
-#include "vkUtils.hpp"
 
 #include <fstream>
 #include <iostream>
 #include <vector>
+
+#include "vkUtils.hpp"
 
 VkPipelineShaderStageCreateInfo pipelineShaderStageCreateInfo(
     VkShaderStageFlagBits stage, VkShaderModule shaderModule,
@@ -110,7 +111,7 @@ VkRenderingAttachmentInfo vk::depthAttachmentInfo(VkImageView view,
     depthAttachment.imageLayout = layout;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    depthAttachment.clearValue.depthStencil.depth = 0.f;
+    depthAttachment.clearValue.depthStencil.depth = 1.f;
 
     return depthAttachment;
 }

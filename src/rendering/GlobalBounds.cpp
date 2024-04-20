@@ -159,4 +159,9 @@ void GlobalBounds::removeBind(StorageBind bind) {
     if (!bind) return;
     storageBounds[bind - 1] = false;
 }
+void GlobalBounds::clearBounds() {
+    storageBounds.clear();
+    textureBounds.clear();
+    uniformBounds.clear();
+}
 }  // namespace vkr

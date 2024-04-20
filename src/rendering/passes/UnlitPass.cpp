@@ -5,6 +5,7 @@
 struct GPUDrawPushConstants {
     glm::mat4 projViewMatrix;
     vkr::StorageBind drawParamsBind;
+    vkr::StorageBind materialsBind;
 };
 
 namespace vkr {
@@ -26,11 +27,11 @@ void UnlitPass::buildPipeline() {
     pipelineBuilder.setShaders(triangleVertexShader, triangleFragShader);
     pipelineBuilder.setInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     pipelineBuilder.setPolygonMode(VK_POLYGON_MODE_FILL);
-    pipelineBuilder.setCullMode(VK_CULL_MODE_NONE,
+    pipelineBuilder.setCullMode(VK_CULL_MODE_FRONT_BIT,
                                 VK_FRONT_FACE_COUNTER_CLOCKWISE);
     pipelineBuilder.setMultisamplingNone();
     pipelineBuilder.disableBlending();
-    pipelineBuilder.enableDepthtest(true, VK_COMPARE_OP_GREATER_OR_EQUAL);
+    pipelineBuilder.enableDepthtest(true, VK_COMPARE_OP_LESS_OR_EQUAL);
     pipelineBuilder.setDepthFormat(depthImage.imageFormat);
     pipelineBuilder.setColorAttachmentFormat(drawImage.imageFormat);
 
@@ -73,7 +74,8 @@ void UnlitPass::buildPipelineLayout() {
     VkPushConstantRange bufferRange{};
     bufferRange.offset = 0;
     bufferRange.size = sizeof(GPUDrawPushConstants);
-    bufferRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    bufferRange.stageFlags =
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
     VkPipelineLayoutCreateInfo pipeline_layout_info =
         vk::pipelineLayoutCreateInfo();
@@ -143,9 +145,12 @@ void UnlitPass::render(VkCommandBuffer cmd) {
     push_constatns.projViewMatrix =
         sceneState.global.proj * sceneState.global.view;
     push_constatns.drawParamsBind = sceneState.getDrawParams().getBindPoint();
+    push_constatns.materialsBind = sceneState.getMaterials().getBindPoint();
 
-    vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0,
-                       sizeof(GPUDrawPushConstants), &push_constatns);
+    vkCmdPushConstants(
+        cmd, pipelineLayout,
+        VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0,
+        sizeof(GPUDrawPushConstants), &push_constatns);
     vkCmdBindIndexBuffer(cmd, sceneState.getIndices().getBuffer(), 0,
                          VK_INDEX_TYPE_UINT32);
 

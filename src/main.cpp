@@ -9,6 +9,7 @@ class MyProgram : public vkr::Program {
    protected:
     float walkSpeed = 5.f;
     vkr::CameraData camera;
+    vkr::TransformData transform;
     void onFrame(float deltaTime) override {
         if (isKeyDown(SDL_SCANCODE_W)) {
             camera.position += camera.target * deltaTime * walkSpeed;
@@ -34,7 +35,17 @@ class MyProgram : public vkr::Program {
             camera.rotateY(-45.f * deltaTime);
         }
 
-        if (isKeyPressed(SDL_SCANCODE_F)) {
+        if (isKeyPressed(SDL_SCANCODE_1)) {
+            transform.scale = glm::vec3(25);
+            loadScene("ToyCar.glb", transform);
+            camera.position = {0.f, 0.f, 10.f};
+            camera.lookAt(glm::vec3(0));
+        }
+
+        if (isKeyPressed(SDL_SCANCODE_2)) {
+            transform.scale = glm::vec3(0.01);
+            loadScene("Duck.glb", transform);
+            camera.position = {0.f, 0.f, 10.f};
             camera.lookAt(glm::vec3(0));
         }
 
@@ -46,7 +57,9 @@ class MyProgram : public vkr::Program {
 
    public:
     MyProgram() : vkr::Program({WIDTH, HEIGHT}, "vkRaster") {
-        loadScene("test2.glb");
+        transform.scale = glm::vec3(25);
+
+        loadScene("ToyCar.glb", transform);
         camera.position = {0.f, 0.f, 10.f};
         camera.lookAt(glm::vec3(0));
         camera.w = WIDTH;
