@@ -4,16 +4,16 @@ Simple Vulkan Renderer That I've began to work on. The purpose is to learn about
 
 # Features
 
-The project has just started, right now it can only display a white triangle on screen and have some classes that will be useful later on.
+The program is aimed to minimize as much draw processing as possible in the cpu side, by implementing techniques such as indirect draws, double buffering and compute based culling.
+Right now it can display untextured gltf scenes with a FPS camera, with the gltf model path being hardcoded on the main.cpp file.
 
-It is supposed to contain the next features:
-- Scene loading from gtlf files.
-- GPU driven rendering.
-- Frustum and occlusion culling.
-- PBR materials.
-- Defferred rendering.
-- Postprocessing with tone-mapping.
-- Bloom
+| Feature | Progress |
+| - | - |
+| gltf scene loading | Implemented without materials and textures |
+| Compute based culling | Not yet |
+| Defferred rendering | Not yet |
+| PBR Materials | Not yet |
+| Postprocessing | Not yet |
 
 # Build
 
