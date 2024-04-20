@@ -34,7 +34,6 @@ class StorageGPUVector {
           app(vk::vkApp::get()),
           bounds(&bounds),
           initialSize(initialSize) {
-        data.resize(initialSize);
         bind = this->bounds;
     }
     ~StorageGPUVector() { app.deletion.addBuffer(buffer); }
@@ -42,24 +41,29 @@ class StorageGPUVector {
     void update() {
         if (dirty) {
             dirty = false;
-            app.deletion.addBuffer(buffer);
-            if (bind) {
-                bounds->removeBind(bindPoint);
-                bindPoint = (StorageBind)0;
-            }
-            if (data.size() > 0 || initialSize > 0) {
-                size_t size =
-                    sizeof(T) * (initialSize > 0 ? initialSize : data.size());
+            size_t size = sizeof(T) * std::max(data.size(), initialSize);
+
+            if (size > buffer.size) {
+                app.deletion.addBuffer(buffer);
+                if (bind) {
+                    bounds->removeBind(bindPoint);
+                    bindPoint = (StorageBind)0;
+                }
+
                 buffer = vk::createBuffer(
                     app.system.allocator, size,
                     VK_BUFFER_USAGE_TRANSFER_DST_BIT |
                         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | usage,
                     VMA_MEMORY_USAGE_GPU_ONLY);
-                BufferWritter::get().writeBuffer(data.data(), size,
-                                                 buffer.buffer);
+
                 if (bind) {
                     bindPoint = bounds->bindStorage(buffer.buffer);
                 }
+            }
+            size_t actualSize = data.size() * sizeof(T);
+            if (actualSize > 0) {
+                BufferWritter::get().writeBuffer(data.data(), actualSize,
+                                                 buffer.buffer);
             }
         }
     }
@@ -75,7 +79,7 @@ class StorageGPUVector {
         dirty = true;
     }
 
-    inline size_t getSize() { return data.size(); }
+    inline size_t getSize() { return std::max(data.size(), initialSize); }
 
     void updateElem(Handle elem, const T& content) {
         if (elem >= data.size()) {
@@ -91,7 +95,7 @@ class StorageGPUVector {
         dirty = true;
     }
 
-    inline bool hasData() { return data.size() > 0; }
+    inline bool hasData() { return getSize() > 0; }
 
     inline const VkBuffer& getBuffer() { return buffer.buffer; }
     inline StorageBind getBindPoint() { return bindPoint; }

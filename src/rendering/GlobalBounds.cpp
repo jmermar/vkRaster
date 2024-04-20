@@ -9,7 +9,7 @@ size_t getFirstFree(std::vector<bool>& v) {
     for (auto b : v) {
         if (!b) {
             v[i] = true;
-            return i;
+            return i + 1;
         }
         i++;
     }

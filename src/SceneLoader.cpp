@@ -16,7 +16,11 @@
 namespace vkr {
 
 struct LoadMeshData {
-    std::vector<size_t> primitives;
+    struct PrimitiveData {
+        size_t primitive;
+        size_t material;
+    };
+    std::vector<PrimitiveData> primitives;
 };
 
 void loadNode(SceneData& scene, std::vector<LoadMeshData>& meshes,
@@ -46,11 +50,9 @@ void loadNode(SceneData& scene, std::vector<LoadMeshData>& meshes,
 
     if (inputNode.mesh > -1) {
         auto& mesh = meshes[inputNode.mesh];
-        int i = 0;
         for (auto& primitive : mesh.primitives) {
-            size_t material =
-                input.meshes[inputNode.mesh].primitives[i++].material;
-            scene.instances.push_back({(size_t)primitive, transform, material});
+            scene.instances.push_back(
+                {primitive.primitive, transform, primitive.material});
         }
     }
 }
@@ -235,7 +237,8 @@ SceneData loadScene(const std::string& path) {
                         continue;
                 }
             }
-            primitives.push_back(retScene.meshes.size());
+            primitives.push_back(
+                {retScene.meshes.size(), (size_t)mesh.primitives[i].material});
             retScene.meshes.push_back({});
             vkr::MeshData& data =
                 retScene.meshes.at(retScene.meshes.size() - 1);

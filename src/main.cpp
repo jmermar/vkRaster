@@ -1,7 +1,10 @@
 #define SDL_MAIN_HANDLED
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
 
 #include "vkRaster.hpp"
+
+using namespace std;
 
 constexpr uint32_t WIDTH = 1920, HEIGHT = 1080;
 
@@ -49,6 +52,14 @@ class MyProgram : public vkr::Program {
             camera.lookAt(glm::vec3(0));
         }
 
+        if (isKeyPressed(SDL_SCANCODE_3)) {
+            transform.scale = glm::vec3(5);
+
+            loadScene("tmp/sponza/sponza.glb", transform);
+            camera.position = {0.f, 0.f, 10.f};
+            camera.lookAt(glm::vec3(0));
+        }
+
         proj = camera.getProj();
         view = camera.getView();
 
@@ -57,11 +68,11 @@ class MyProgram : public vkr::Program {
 
    public:
     MyProgram() : vkr::Program({WIDTH, HEIGHT}, "vkRaster") {
-        transform.scale = glm::vec3(25);
-
-        loadScene("ToyCar.glb", transform);
+        transform.scale = glm::vec3(0.01);
+        loadScene("Duck.glb", transform);
         camera.position = {0.f, 0.f, 10.f};
         camera.lookAt(glm::vec3(0));
+
         camera.w = WIDTH;
         camera.h = HEIGHT;
     }
