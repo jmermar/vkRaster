@@ -83,37 +83,21 @@ void CullingPass::render(VkCommandBuffer cmd) {
     push.instancesBind = sceneState.getDrawCommands().getBindPoint();
     push.drawParamsBind = sceneState.getDrawParams().getBindPoint();
 
-    auto m = sceneState.global.proj * sceneState.global.view;
+    auto m = glm::transpose(sceneState.global.proj * sceneState.global.view);
 
-    push.right.x = m[0][3] + m[0][0];
-    push.right.y = m[1][3] + m[1][0];
-    push.right.z = m[2][3] + m[2][0];
-    push.right.w = m[3][3] + m[3][0];
+    push.right = m[3] - m[0];
+    push.left = m[3] + m[0];
+    push.top = m[3] - m[1];
+    push.bottom = m[3] + m[1];
+    push.front = m[3] + m[2];
+    push.back = m[3] - m[2];
 
-    push.left.x = m[0][3] - m[0][0];
-    push.left.y = m[1][3] - m[1][0];
-    push.left.z = m[2][3] - m[2][0];
-    push.left.w = m[3][3] - m[3][0];
-
-    push.top.x = m[0][3] - m[0][1];
-    push.top.y = m[1][3] - m[1][1];
-    push.top.z = m[2][3] - m[2][1];
-    push.top.w = m[3][3] - m[3][1];
-
-    push.bottom.x = m[0][3] + m[0][1];
-    push.bottom.y = m[1][3] + m[1][1];
-    push.bottom.z = m[2][3] + m[2][1];
-    push.bottom.w = m[3][3] + m[3][1];
-
-    push.back.x = m[0][2];
-    push.back.y = m[1][2];
-    push.back.z = m[2][2];
-    push.back.w = m[3][2];
-
-    push.front.x = m[0][3] - m[0][2];
-    push.front.y = m[1][3] - m[1][2];
-    push.front.z = m[2][3] - m[2][2];
-    push.front.w = m[3][3] - m[3][2];
+    push.right /= glm::length(glm::vec3(push.right));
+    push.left /= glm::length(glm::vec3(push.left));
+    push.top /= glm::length(glm::vec3(push.top));
+    push.bottom /= glm::length(glm::vec3(push.bottom));
+    push.front /= glm::length(glm::vec3(push.front));
+    push.back /= glm::length(glm::vec3(push.back));
 
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
                        sizeof(GPUCullPushConstants), &push);

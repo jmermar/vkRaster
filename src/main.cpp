@@ -53,7 +53,7 @@ class MyProgram : public vkr::Program {
         }
 
         if (isKeyPressed(SDL_SCANCODE_3)) {
-            transform.scale = glm::vec3(0.25);
+            transform.scale = glm::vec3(1);
 
             loadScene("tmp/sponza/sponza.glb", transform);
             camera.position = {0.f, 0.f, 10.f};
@@ -73,6 +73,8 @@ class MyProgram : public vkr::Program {
     MyProgram() : vkr::Program({WIDTH, HEIGHT}, "vkRaster") {
         transform.scale = glm::vec3(0.01);
         loadScene("Duck.glb", transform);
+        camera.znear = 0.1;
+        camera.zfar = 1000;
         camera.position = {0.f, 0.f, 10.f};
         camera.lookAt(glm::vec3(0));
 
