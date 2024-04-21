@@ -16,7 +16,7 @@ class Renderer;
 using BufferHandle = uint32_t;
 using MaterialHandle = uint32_t;
 
-constexpr uint32_t MAX_DRAW_COMMANDS = 1024 * 1024;
+constexpr uint32_t MAX_DRAW_COMMANDS = 1024 * 1024 * 10;
 
 struct TextureData {
     vk::AllocatedImage image;

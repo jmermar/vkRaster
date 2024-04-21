@@ -23,7 +23,8 @@ struct LoadMeshData {
     std::vector<PrimitiveData> primitives;
 };
 
-void loadNode(SceneData& scene, std::vector<LoadMeshData>& meshes,
+void loadNode(const glm::mat4& parentTransform, SceneData& scene,
+              std::vector<LoadMeshData>& meshes,
               const tinygltf::Node& inputNode, const tinygltf::Model& input) {
     glm::mat4 transform(1);
     if (inputNode.translation.size() == 3) {
@@ -42,9 +43,12 @@ void loadNode(SceneData& scene, std::vector<LoadMeshData>& meshes,
         transform = glm::make_mat4x4(inputNode.matrix.data());
     };
 
+    transform = parentTransform * transform;
+
     if (inputNode.children.size() > 0) {
         for (size_t i = 0; i < inputNode.children.size(); i++) {
-            loadNode(scene, meshes, input.nodes[inputNode.children[i]], input);
+            loadNode(transform, scene, meshes,
+                     input.nodes[inputNode.children[i]], input);
         }
     }
 
@@ -251,7 +255,7 @@ SceneData loadScene(const std::string& path) {
     const tinygltf::Scene& scene = model.scenes[0];
     for (size_t i = 0; i < scene.nodes.size(); i++) {
         tinygltf::Node node = model.nodes[scene.nodes[i]];
-        loadNode(retScene, meshesPrimitives, node, model);
+        loadNode(glm::mat4(1), retScene, meshesPrimitives, node, model);
     }
 
     std::cout << "Loaded scene from " << fullPath << ".\n";
