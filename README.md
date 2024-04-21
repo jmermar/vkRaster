@@ -14,7 +14,7 @@ Right now it can display unlit gltf scenes with a FPS camera, with the gltf scen
 | - | - |
 | Textures | Implemented |
 | gltf scene loading | Implemented with unlit textures |
-| Compute based culling | Not yet |
+| Compute based culling | Only frustum culling |
 | Defferred rendering | Not yet |
 | PBR Materials | Not yet |
 | Postprocessing | Not yet |
