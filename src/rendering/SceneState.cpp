@@ -61,7 +61,7 @@ BufferHandle SceneState::allocateMesh(const MeshData& data) {
         maxCorner.z = std::max(maxCorner.z, v.position.z);
     }
 
-    glm::vec3 center = minCorner * 0.5f + maxCorner * 0.5f;
+    glm::vec3 center = minCorner + maxCorner * 0.5f;
     float size = 0;
     for (auto& v : data.vertices) {
         size = std::max(glm::length(v.position - center), size);

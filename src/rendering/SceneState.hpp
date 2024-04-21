@@ -110,10 +110,9 @@ class SceneState {
         auto& buffer = meshesData[mesh];
 
         glm::vec4 sphere = transform * glm::vec4(glm::vec3(buffer.sphere), 1);
-        sphere.w =
-            buffer.sphere.w * glm::max(glm::max(glm::length(transform[0]),
-                                                glm::length(transform[1])),
-                                       glm::length(transform[2]));
+        sphere.w = buffer.sphere.w *
+                   glm::max(glm::max(transform[0][0], transform[1][1]),
+                            transform[2][2]);
 
         DrawCommand dc{.transform = transform,
                        .sphere = sphere,

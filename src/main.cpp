@@ -53,7 +53,7 @@ class MyProgram : public vkr::Program {
         }
 
         if (isKeyPressed(SDL_SCANCODE_3)) {
-            transform.scale = glm::vec3(5);
+            transform.scale = glm::vec3(0.25);
 
             loadScene("tmp/sponza/sponza.glb", transform);
             camera.position = {0.f, 0.f, 10.f};
@@ -64,6 +64,9 @@ class MyProgram : public vkr::Program {
         view = camera.getView();
 
         clearColor = glm::vec3(0, 0, 0.4);
+
+        if (isKeyDown(SDL_SCANCODE_F))
+            cout << "FPS: " << 1.f / deltaTime << endl;
     }
 
    public:

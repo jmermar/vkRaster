@@ -49,7 +49,7 @@ struct CameraData {
         target = glm::normalize(pos - position);
     }
 
-    float fov{45.f}, w{1}, h{1}, znear{0.1f}, zfar{10000.f};
+    float fov{45.f}, w{1}, h{1}, znear{0.1f}, zfar{1000.f};
 
     glm::mat4 getView();
     glm::mat4 getProj();
