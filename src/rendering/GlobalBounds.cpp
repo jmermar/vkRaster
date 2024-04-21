@@ -60,6 +60,8 @@ GlobalBounds::GlobalBounds() : app(vk::vkApp::get()) {
 
     sampl.magFilter = VK_FILTER_LINEAR;
     sampl.minFilter = VK_FILTER_LINEAR;
+
+    vkCreateSampler(app.system.device, &sampl, nullptr, &linearSampler);
 }
 GlobalBounds::~GlobalBounds() {
     vkDestroySampler(app.system.device, nearestSampler, 0);

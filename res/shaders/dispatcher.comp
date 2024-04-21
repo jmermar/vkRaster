@@ -5,6 +5,7 @@ layout(local_size_x = 256) in;
 
 struct Instance {
     mat4 transform;
+    vec4 sphere;
     uint firstIndex;
     uint indexCount;
     int vertexOffset;
@@ -28,6 +29,7 @@ layout(binding = 1, std430) writeonly buffer DrawParams { DrawParam params[]; }
 drawParams[];
 
 layout(push_constant) uniform constants {
+    vec4 left, right, front, back, top, bottom;
     uint indirectDrawBind;
     uint multiDrawDataBind;
     uint instanceBind;
@@ -48,10 +50,19 @@ layout(binding = 1, std430) buffer MultiDrawData {
 }
 multiDrawData[];
 
+bool isVisible(uint instance) {
+    vec4 center =
+        vec4(instances[instanceBind].instances[instance].sphere.xyz, 1);
+    float l = instances[instanceBind].instances[instance].sphere.w;
+    return (dot(left, center)) > -l && (dot(right, center) > -l) &&
+           (dot(top, center)) > -l && (dot(bottom, center) > -l) &&
+           (dot(front, center)) > -l && (dot(back, center) > -l);
+}
+
 void main() {
     uint gID = gl_GlobalInvocationID.x;
 
-    if (gID < multiDrawData[multiDrawDataBind].maxDraws) {
+    if (gID < multiDrawData[multiDrawDataBind].maxDraws && isVisible(gID)) {
         uint index = atomicAdd(multiDrawData[multiDrawDataBind].drawCounts, 1);
 
         indirectDraw[indirectDrawBind].commands[index].indexCount =

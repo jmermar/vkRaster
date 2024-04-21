@@ -39,6 +39,7 @@ class SceneState {
     };
     struct DrawCommand {
         glm::mat4 transform;
+        glm::vec4 sphere;
         uint32_t firstIndex;
         uint32_t indexCount;
         int32_t vertexOffset;
@@ -64,6 +65,7 @@ class SceneState {
         uint32_t baseIndex{};
         uint32_t indicesCount{};
         uint32_t baseVertex{};
+        glm::vec4 sphere;
     };
 
     static SceneState* instance;
@@ -107,7 +109,14 @@ class SceneState {
                      MaterialHandle material) {
         auto& buffer = meshesData[mesh];
 
+        glm::vec4 sphere = transform * glm::vec4(glm::vec3(buffer.sphere), 1);
+        sphere.w =
+            buffer.sphere.w * glm::max(glm::max(glm::length(transform[0]),
+                                                glm::length(transform[1])),
+                                       glm::length(transform[2]));
+
         DrawCommand dc{.transform = transform,
+                       .sphere = sphere,
                        .firstIndex = buffer.baseIndex,
                        .indexCount = buffer.indicesCount,
                        .vertexOffset = (int32_t)buffer.baseVertex,

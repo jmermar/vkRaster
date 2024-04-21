@@ -1,9 +1,12 @@
 #include "CullingPass.hpp"
 
+#include <glm/gtc/matrix_access.hpp>
+
 #include "../SceneState.hpp"
 
 namespace vkr {
 struct GPUCullPushConstants {
+    glm::vec4 left, right, front, back, top, bottom;
     StorageBind indirectDrawBind;
     StorageBind multiDrawDataBind;
     StorageBind instancesBind;
@@ -79,6 +82,17 @@ void CullingPass::render(VkCommandBuffer cmd) {
     push.multiDrawDataBind = sceneState.getDrawCommandData().getBindPoint();
     push.instancesBind = sceneState.getDrawCommands().getBindPoint();
     push.drawParamsBind = sceneState.getDrawParams().getBindPoint();
+
+    auto projView = sceneState.global.proj * sceneState.global.view;
+
+    push.left = glm::normalize(glm::row(projView, 3) + glm::row(projView, 0));
+    push.right = glm::normalize(glm::row(projView, 3) - glm::row(projView, 0));
+
+    push.bottom = glm::normalize(glm::row(projView, 3) + glm::row(projView, 1));
+    push.top = glm::normalize(glm::row(projView, 3) - glm::row(projView, 1));
+
+    push.front = glm::normalize(glm::row(projView, 3) + glm::row(projView, 2));
+    push.back = glm::normalize(glm::row(projView, 3) - glm::row(projView, 2));
 
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
                        sizeof(GPUCullPushConstants), &push);

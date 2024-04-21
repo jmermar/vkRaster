@@ -20,7 +20,7 @@ void Program::loadScene(const char* sceneName, const TransformData& tdata) {
         textures.push_back(SceneState::get().allocateTexture(
             texture.data.data(),
             {.width = texture.width, .height = texture.height, .depth = 1},
-            VK_FORMAT_R8G8B8A8_UNORM, 0, vkr::GlobalBounds::SAMPLER_NEAREST));
+            VK_FORMAT_R8G8B8A8_UNORM, 0, vkr::GlobalBounds::SAMPLER_LINEAR));
     }
 
     for (auto& material : scene.materials) {
