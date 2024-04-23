@@ -1,10 +1,13 @@
 #include "vkApp.hpp"
 
 #include <VkBootstrap.h>
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <imgui.h>
 
 #include "vkCommand.hpp"
+#include "vkPipelines.hpp"
 #include "vkSync.hpp"
-
 VkSemaphoreSubmitInfo semaphore_submit_info(VkPipelineStageFlags2 stageMask,
                                             VkSemaphore semaphore) {
     VkSemaphoreSubmitInfo submitInfo{};
@@ -56,14 +59,55 @@ void vkApp::init(SDL_Window* window, size_t w, size_t h) {
     initSwapchain(w, h);
     initImages(w, h);
     initFrameData();
+
+    initCommands();
+
+    initImgui();
 }
 void vkApp::finish() {
     vkDeviceWaitIdle(system.device);
+
+    ImGui_ImplVulkan_Shutdown();
+    vkDestroyDescriptorPool(system.device, imguiPool, nullptr);
+
+    destroyCommands();
 
     destroyFrameData();
     destroyImages();
     destroySwapchain();
 }
+void vkApp::immediateSubmit(
+    std::function<void(VkCommandBuffer cmd)>&& function) {
+    vkResetFences(system.device, 1, &immFence);
+    vkResetCommandBuffer(immCommandBuffer, 0);
+
+    VkCommandBuffer cmd = immCommandBuffer;
+
+    VkCommandBufferBeginInfo cmdBeginInfo = {};
+    cmdBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    cmdBeginInfo.pNext = nullptr;
+
+    cmdBeginInfo.pInheritanceInfo = nullptr;
+    cmdBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkBeginCommandBuffer(cmd, &cmdBeginInfo);
+
+    function(cmd);
+
+    vkEndCommandBuffer(cmd);
+
+    VkCommandBufferSubmitInfo cmdSubmit =
+        command_buffer_submit_info(immCommandBuffer);
+
+    VkSubmitInfo2 submit = submit_info(&cmdSubmit, 0, 0);
+
+    // submit command buffer to the queue and execute it.
+    //  _renderFence will now block until the graphic commands finish execution
+    vkQueueSubmit2(system.graphicsQueue, 1, &submit, immFence);
+
+    vkWaitForFences(system.device, 1, &immFence, true, 9999999999);
+}
+
 void vkApp::regenerate() {
     vkDeviceWaitIdle(system.device);
 
@@ -77,6 +121,76 @@ void vkApp::regenerate() {
     initImages(screenW, screenH);
     shouldRegenerate = false;
 }
+void vkApp::initImgui() {
+    VkDescriptorPoolSize pool_sizes[] = {
+        {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+        {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+        {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+
+    VkDescriptorPoolCreateInfo pool_info = {};
+    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    pool_info.maxSets = 1000;
+    pool_info.poolSizeCount = (uint32_t)std::size(pool_sizes);
+    pool_info.pPoolSizes = pool_sizes;
+
+    vkCreateDescriptorPool(system.device, &pool_info, nullptr, &imguiPool);
+
+    // 2: initialize imgui library
+
+    // this initializes the core structures of imgui
+    ImGui::CreateContext();
+
+    // this initializes imgui for SDL
+    ImGui_ImplSDL3_InitForVulkan(window);
+
+    // this initializes imgui for Vulkan
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    init_info.Instance = system.instance;
+    init_info.PhysicalDevice = system.chosenGPU;
+    init_info.Device = system.device;
+    init_info.Queue = system.graphicsQueue;
+    init_info.DescriptorPool = imguiPool;
+    init_info.MinImageCount = FRAMES_IN_FLIGHT;
+    init_info.ImageCount = FRAMES_IN_FLIGHT;
+    init_info.UseDynamicRendering = true;
+    init_info.PipelineRenderingCreateInfo.sType =
+        VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
+    ImGui_ImplVulkan_Init(&init_info);
+}
+
+void vkApp::initCommands() {
+    VkCommandPoolCreateInfo commandPoolInfo = {};
+    commandPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    commandPoolInfo.pNext = nullptr;
+    commandPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    commandPoolInfo.queueFamilyIndex = system.graphicsQueueFamily;
+    vkCreateCommandPool(system.device, &commandPoolInfo, nullptr,
+                        &immCommandPool);
+
+    VkCommandBufferAllocateInfo cmdAllocInfo = {};
+    cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdAllocInfo.pNext = nullptr;
+    cmdAllocInfo.commandPool = immCommandPool;
+    cmdAllocInfo.commandBufferCount = 1;
+    cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+    vkAllocateCommandBuffers(system.device, &cmdAllocInfo, &immCommandBuffer);
+
+    vk::fenceCreate(immFence, system.device, VK_FENCE_CREATE_SIGNALED_BIT);
+}
+
 bool vkApp::renderBegin(FrameData** frameP) {
     if (shouldRegenerate) {
         regenerate();
@@ -116,6 +230,14 @@ bool vkApp::renderBegin(FrameData** frameP) {
 
     prepareUploads(buffer);
 
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::ShowDemoWindow();
+
+    ImGui::Render();
+
     return true;
 }
 void vkApp::renderEnd() {
@@ -124,6 +246,7 @@ void vkApp::renderEnd() {
     auto renderSemaphore = frame.renderSemaphore;
     auto swapchainSemaphore = frame.swapchainSemaphore;
     auto swapchainImage = swapchain.images[swapchainImageIndex];
+    auto swapchainImageView = swapchain.imageViews[swapchainImageIndex];
     auto buffer = frame.buffer;
 
     vkCommands::transitionImage(buffer, drawImage.image,
@@ -139,6 +262,21 @@ void vkApp::renderEnd() {
 
     vkCommands::transitionImage(buffer, swapchainImage,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    VkRenderingAttachmentInfo colorAttachment = vk::attachmentInfo(
+        swapchainImageView, nullptr, VK_IMAGE_LAYOUT_GENERAL);
+    VkRenderingInfo renderInfo = vk::renderingInfo(
+        {.width = screenW, .height = screenH}, &colorAttachment, nullptr);
+
+    vkCmdBeginRendering(buffer, &renderInfo);
+
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), buffer);
+
+    vkCmdEndRendering(buffer);
+
+    vkCommands::transitionImage(buffer, swapchainImage,
+                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(buffer);
@@ -237,6 +375,10 @@ void vkApp::initImages(size_t w, size_t h) {
                       VK_FORMAT_D32_SFLOAT,
                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                       VMA_MEMORY_USAGE_GPU_ONLY, VK_IMAGE_ASPECT_DEPTH_BIT);
+}
+void vkApp::destroyCommands() {
+    vkDestroyFence(system.device, immFence, nullptr);
+    vkDestroyCommandPool(system.device, immCommandPool, nullptr);
 }
 void vkApp::destroyImages() {
     vk::freeImage(drawImage, system.device, system.allocator);

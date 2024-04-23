@@ -1,5 +1,7 @@
 #include "System.hpp"
 
+#include <backends/imgui_impl_sdl3.h>
+
 #include <stdexcept>
 namespace vkr {
 System::System(const Size& size, const char* winName) {
@@ -41,6 +43,8 @@ void System::handleInput(bool& shouldQuit) {
                 break;
         }
     }
+
+    ImGui_ImplSDL3_ProcessEvent(&ev);
 }
 System::KeyState System::getKeyState(SDL_Scancode key) {
     if (keysState.find(key) == keysState.end()) {

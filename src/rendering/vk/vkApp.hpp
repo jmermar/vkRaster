@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+
 #include "vkDeletion.hpp"
 #include "vkImage.hpp"
 #include "vkInit.hpp"
@@ -39,6 +41,10 @@ struct vkApp {
     std::vector<CopyBufferCommand> copyBuffers;
     std::vector<CopyImageCommand> copyImages;
 
+    VkFence immFence;
+    VkCommandBuffer immCommandBuffer;
+    VkCommandPool immCommandPool;
+
     SDL_Window* window{};
     vkSystem system{};
     FrameData frameData[FRAMES_IN_FLIGHT]{};
@@ -46,6 +52,8 @@ struct vkApp {
 
     AllocatedImage drawImage{};
     AllocatedImage depthImage{};
+
+    VkDescriptorPool imguiPool;
 
     bool shouldRegenerate{};
 
@@ -67,13 +75,19 @@ struct vkApp {
     inline uint32_t getScreenW() { return screenW; }
     inline uint32_t getScreenH() { return screenH; }
 
+    void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
+
    private:
     void regenerate();
+
+    void initImgui();
+    void initCommands();
 
     void initSwapchain(size_t w, size_t h);
     void initFrameData();
     void initImages(size_t w, size_t h);
 
+    void destroyCommands();
     void destroyImages();
     void destroySwapchain();
     void destroyFrameData();
