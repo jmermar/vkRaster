@@ -67,6 +67,9 @@ class MyProgram : public vkr::Program {
             camera.lookAt(glm::vec3(0));
         }
 
+        camera.w = getWindowSize().w;
+        camera.h = getWindowSize().h;
+
         proj = camera.getProj();
         view = camera.getView();
 

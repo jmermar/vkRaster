@@ -56,6 +56,11 @@ void Program::run() {
         float delta = (SDL_GetTicks() - ticks) / 1000.f;
         if ((SDL_GetWindowFlags(system.getWindow()) & SDL_WINDOW_MINIMIZED) ==
             0) {
+            int w, h;
+            SDL_GetWindowSize(system.getWindow(), &w, &h);
+            size.w = w;
+            size.h = h;
+
             ticks = SDL_GetTicks();
             system.handleInput(shouldQuit);
 

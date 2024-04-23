@@ -16,6 +16,8 @@ class Program {
     glm::mat4 proj, view;
     glm::vec3 clearColor;
 
+    const Size& getWindowSize() { return size; }
+
     inline bool isKeyPressed(SDL_Scancode key) {
         return system.isKeyPressed(key);
     }

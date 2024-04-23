@@ -74,7 +74,8 @@ void vkApp::regenerate() {
     SDL_GetWindowSize(window, &w, &h);
 
     initSwapchain(w, h);
-    initImages(w, h);
+    initImages(screenW, screenH);
+    shouldRegenerate = false;
 }
 bool vkApp::renderBegin(FrameData** frameP) {
     if (shouldRegenerate) {
@@ -134,7 +135,7 @@ void vkApp::renderEnd() {
 
     vk::copyImageToImage(buffer, drawImage.image, swapchainImage,
                          {.width = screenW, .height = screenH},
-                         {.width = screenW - 1, .height = screenH - 1}, true);
+                         {.width = screenW, .height = screenH}, true);
 
     vkCommands::transitionImage(buffer, swapchainImage,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -173,9 +174,6 @@ void vkApp::renderEnd() {
     frameCounter++;
 }
 void vkApp::initSwapchain(size_t w, size_t h) {
-    screenW = w;
-    screenH = h;
-
     vkb::SwapchainBuilder swapchainBuilder{system.chosenGPU, system.device,
                                            system.surface};
 
@@ -189,6 +187,10 @@ void vkApp::initSwapchain(size_t w, size_t h) {
             .add_image_usage_flags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
             .build()
             .value();
+
+    screenW = vkbSwapchain.extent.width;
+    screenH = vkbSwapchain.extent.height;
+
     swapchain.swapchain = vkbSwapchain.swapchain;
     swapchain.images = vkbSwapchain.get_images().value();
     swapchain.imageViews = vkbSwapchain.get_image_views().value();
