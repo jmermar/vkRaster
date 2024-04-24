@@ -26,6 +26,7 @@ class Program {
 
     void loadScene(const char* scene, const TransformData& data);
     virtual void onFrame(float deltaTime) = 0;
+    virtual void onDrawGUI(float deltaTime) = 0;
 
    public:
     Program(const Size& size, const char* name);

@@ -34,6 +34,7 @@ layout(push_constant) uniform constants {
     uint multiDrawDataBind;
     uint instanceBind;
     uint drawParamsBind;
+    uint culling;
 };
 
 layout(binding = 1, std430) writeonly buffer IndirectDraws {
@@ -54,9 +55,11 @@ bool isVisible(uint instance) {
     vec4 center =
         vec4(instances[instanceBind].instances[instance].sphere.xyz, 1);
     float l = instances[instanceBind].instances[instance].sphere.w;
-    return (dot(left, center)) > -l && (dot(right, center) > -l) &&
-           (dot(top, center)) > -l && (dot(bottom, center) > -l) &&
-           (dot(front, center)) > -l && (dot(back, center) > -l);
+
+    return (culling & 1) == 0 ||
+           ((dot(left, center)) > -l && (dot(right, center) > -l) &&
+            (dot(top, center)) > -l && (dot(bottom, center) > -l) &&
+            (dot(front, center)) > -l && (dot(back, center) > -l));
 }
 
 void main() {

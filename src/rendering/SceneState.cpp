@@ -42,9 +42,8 @@ void SceneState::clearScene() {
     materials.clear();
 
     for (auto t : textures) {
-        app.deletion.addImage(t->image);
         bounds.removeBind(t->bindPoint);
-        delete t;
+        app.deletion.addImage(t->image);
     }
     textures.clear();
 }

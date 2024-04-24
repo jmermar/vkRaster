@@ -27,7 +27,7 @@ void UnlitPass::buildPipeline() {
     pipelineBuilder.setShaders(triangleVertexShader, triangleFragShader);
     pipelineBuilder.setInputTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     pipelineBuilder.setPolygonMode(VK_POLYGON_MODE_FILL);
-    pipelineBuilder.setCullMode(VK_CULL_MODE_FRONT_BIT,
+    pipelineBuilder.setCullMode(VK_CULL_MODE_BACK_BIT,
                                 VK_FRONT_FACE_COUNTER_CLOCKWISE);
     pipelineBuilder.setMultisamplingNone();
     pipelineBuilder.disableBlending();

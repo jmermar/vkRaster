@@ -37,6 +37,8 @@ glm::mat4 CameraData::getView() {
     return glm::lookAt(position, position + target, glm::vec3(0, 1, 0));
 }
 glm::mat4 CameraData::getProj() {
-    return glm::perspective(fov, w / h, znear, zfar);
+    auto ret = glm::perspective(fov, w / h, znear, zfar);
+    ret[1][1] *= -1;
+    return ret;
 }
 }  // namespace vkr

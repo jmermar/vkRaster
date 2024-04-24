@@ -42,9 +42,8 @@ void System::handleInput(bool& shouldQuit) {
                 keysState.erase(key);
                 break;
         }
+        ImGui_ImplSDL3_ProcessEvent(&ev);
     }
-
-    ImGui_ImplSDL3_ProcessEvent(&ev);
 }
 System::KeyState System::getKeyState(SDL_Scancode key) {
     if (keysState.find(key) == keysState.end()) {

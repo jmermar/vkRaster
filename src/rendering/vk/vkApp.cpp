@@ -162,12 +162,18 @@ void vkApp::initImgui() {
     init_info.MinImageCount = FRAMES_IN_FLIGHT;
     init_info.ImageCount = FRAMES_IN_FLIGHT;
     init_info.UseDynamicRendering = true;
+
     init_info.PipelineRenderingCreateInfo.sType =
         VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO;
+    init_info.PipelineRenderingCreateInfo.colorAttachmentCount = 1;
+    init_info.PipelineRenderingCreateInfo.pColorAttachmentFormats =
+        &drawImage.imageFormat;
 
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
     ImGui_ImplVulkan_Init(&init_info);
+
+    ImGui_ImplVulkan_CreateFontsTexture();
 }
 
 void vkApp::initCommands() {
@@ -230,14 +236,6 @@ bool vkApp::renderBegin(FrameData** frameP) {
 
     prepareUploads(buffer);
 
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplSDL3_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::ShowDemoWindow();
-
-    ImGui::Render();
-
     return true;
 }
 void vkApp::renderEnd() {
@@ -258,25 +256,10 @@ void vkApp::renderEnd() {
 
     vk::copyImageToImage(buffer, drawImage.image, swapchainImage,
                          {.width = screenW, .height = screenH},
-                         {.width = screenW, .height = screenH}, true);
+                         {.width = screenW, .height = screenH});
 
     vkCommands::transitionImage(buffer, swapchainImage,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-
-    VkRenderingAttachmentInfo colorAttachment = vk::attachmentInfo(
-        swapchainImageView, nullptr, VK_IMAGE_LAYOUT_GENERAL);
-    VkRenderingInfo renderInfo = vk::renderingInfo(
-        {.width = screenW, .height = screenH}, &colorAttachment, nullptr);
-
-    vkCmdBeginRendering(buffer, &renderInfo);
-
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), buffer);
-
-    vkCmdEndRendering(buffer);
-
-    vkCommands::transitionImage(buffer, swapchainImage,
-                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(buffer);

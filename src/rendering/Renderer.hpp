@@ -14,6 +14,7 @@ class BufferWritter;
 class SceneState;
 class UnlitPass;
 class CullingPass;
+class ImGUIPass;
 class Renderer {
    private:
     vk::vkApp& app;
@@ -21,6 +22,7 @@ class Renderer {
     SceneState* sceneState;
     UnlitPass* unlitPass;
     CullingPass* cullingPass;
+    ImGUIPass* imGUIPass;
     Size screenSize;
 
    public:

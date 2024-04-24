@@ -6,6 +6,7 @@
 #include "BufferWritter.hpp"
 #include "SceneState.hpp"
 #include "passes/CullingPass.hpp"
+#include "passes/ImGUIPass.hpp"
 #include "passes/UnlitPass.hpp"
 #include "vk/vkApp.hpp"
 #include "vk/vkCommand.hpp"
@@ -18,6 +19,7 @@ Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
     sceneState = new SceneState();
     unlitPass = new UnlitPass();
     cullingPass = new CullingPass();
+    imGUIPass = new ImGUIPass();
     screenSize = {w, h};
 }
 
@@ -69,6 +71,8 @@ void Renderer::render(glm::vec4 clearColor) {
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
     unlitPass->render(buffer);
+
+    imGUIPass->render(buffer);
 
     // Draw scene
 

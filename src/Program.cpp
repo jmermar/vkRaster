@@ -1,5 +1,9 @@
 #include "Program.hpp"
 
+#include <backends/imgui_impl_sdl3.h>
+#include <backends/imgui_impl_vulkan.h>
+#include <imgui.h>
+
 #include <SceneLoader.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -65,6 +69,14 @@ void Program::run() {
             system.handleInput(shouldQuit);
 
             onFrame(delta);
+
+            ImGui_ImplVulkan_NewFrame();
+            ImGui_ImplSDL3_NewFrame();
+            ImGui::NewFrame();
+
+            onDrawGUI(delta);
+
+            ImGui::Render();
 
             SceneState::get().global.proj = proj;
             SceneState::get().global.view = view;
