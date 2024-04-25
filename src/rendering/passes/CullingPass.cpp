@@ -105,7 +105,7 @@ void CullingPass::render(VkCommandBuffer cmd) {
     vkCmdPushConstants(cmd, pipelineLayout, VK_SHADER_STAGE_COMPUTE_BIT, 0,
                        sizeof(GPUCullPushConstants), &push);
 
-    vkCmdDispatch(cmd, sceneState.getDrawCommands().getSize(), 1, 1);
+    vkCmdDispatch(cmd, sceneState.getDrawCommands().getLogicalSize(), 1, 1);
 
     memoryBarrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
     memoryBarrier.dstStageMask = VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;

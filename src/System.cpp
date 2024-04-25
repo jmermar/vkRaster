@@ -19,6 +19,23 @@ System::~System() {
     SDL_Quit();
 }
 void System::handleInput(bool& shouldQuit) {
+    int w, h;
+    SDL_GetWindowSize(window, &w, &h);
+    glm::vec2 center(w / 2.f, h / 2.f);
+    if (captureMouse) {
+        SDL_SetRelativeMouseMode(true);
+        if (!initCapture) {
+            glm::vec2 mousePos;
+            SDL_GetMouseState(&mousePos.x, &mousePos.y);
+
+            mouseDelta = center - mousePos;
+        }
+
+        SDL_WarpMouseInWindow(window, center.x, center.y);
+    } else {
+        SDL_SetRelativeMouseMode(false);
+        mouseDelta = {};
+    }
     for (auto& [scan, key] : keysState) {
         if (key == KeyState::Pressed) key = KeyState::Hold;
     }

@@ -14,36 +14,21 @@ class MyProgram : public vkr::Program {
    protected:
     float walkSpeed = 5.f;
     vkr::CameraData camera;
-    vkr::TransformData transform;
+    bool onMenu = false;
 
-    void setScene(const std::string& name) {
-        if (name == "car") {
-            transform.scale = glm::vec3(25);
-            loadScene("ToyCar.glb", transform);
-            camera.position = {0.f, 0.f, 10.f};
-            camera.lookAt(glm::vec3(0));
-        }
+    void init(bool sponza = false) {
+        scene.clear();
+        camera.position = {};
+        camera.target = {0, 0, 1};
 
-        if (name == "duck") {
-            transform.scale = glm::vec3(1);
-            loadScene("Duck.glb", transform);
-            camera.position = {0.f, 0.f, 10.f};
-            camera.lookAt(glm::vec3(0));
-        }
-
-        if (name == "ducks") {
-            transform.scale = glm::vec3(1);
-            loadScene("lots_ducks.glb", transform);
-            camera.position = {0.f, 0.f, 10.f};
-            camera.lookAt(glm::vec3(0));
-        }
-
-        if (name == "sponza") {
-            transform.scale = glm::vec3(1);
-
-            loadScene("tmp/sponza/sponza.glb", transform);
-            camera.position = {8.f, 1.f, 0.5f};
-            camera.lookAt(glm::vec3(0));
+        if (sponza) {
+            vkr::TransformData transform;
+            scene.addInstance(scene.loadModel("tmp/sponza/sponza.glb"),
+                              transform.getTransform());
+        } else {
+            vkr::TransformData transform;
+            scene.addInstance(scene.loadModel("Duck.glb"),
+                              transform.getTransform());
         }
     }
 
@@ -56,24 +41,34 @@ class MyProgram : public vkr::Program {
 
         ImGui::Text("FPS: %f\n", 1.f / deltaTime);
 
-        if (ImGui::Button("Car Scene")) {
-            setScene("car");
+        if (ImGui::Button("Restart")) {
+            init();
         }
 
-        if (ImGui::Button("Duck Scene")) {
-            setScene("duck");
+        if (ImGui::Button("Add Duck")) {
+            vkr::TransformData transform;
+            transform.position = camera.position;
+            scene.addInstance(scene.loadModel("Duck.glb"),
+                              transform.getTransform());
         }
 
-        if (ImGui::Button("Ducks Scene")) {
-            setScene("ducks");
-        }
-
-        if (ImGui::Button("Sponza Scene")) {
-            setScene("sponza");
+        if (ImGui::Button("Add Car")) {
+            vkr::TransformData transform;
+            transform.scale = glm::vec3(45);
+            transform.position = camera.position;
+            scene.addInstance(scene.loadModel("ToyCar.glb"),
+                              transform.getTransform());
         }
 
         ImGui::InputFloat3("Camera Position", (float*)&camera.position, "%.3f",
                            ImGuiInputTextFlags_ReadOnly);
+
+        if (ImGui::Button("Add Sponza")) {
+            vkr::TransformData transform;
+            transform.position = camera.position;
+            scene.addInstance(scene.loadModel("tmp/sponza/sponza.glb"),
+                              transform.getTransform());
+        }
 
         vkr::SceneState::get().global.culling = 0;
         static bool frustumEnabled = true;
@@ -96,21 +91,14 @@ class MyProgram : public vkr::Program {
             camera.position -= camera.target * deltaTime * walkSpeed;
         }
 
-        if (isKeyDown(SDL_SCANCODE_LEFT)) {
-            camera.rotateX(45.f * deltaTime);
+        camera.rotateX(45.f * getMouseX());
+        camera.rotateY(45.f * getMouseY());
+
+        if (isKeyPressed(SDL_SCANCODE_ESCAPE)) {
+            onMenu = !onMenu;
         }
 
-        if (isKeyDown(SDL_SCANCODE_RIGHT)) {
-            camera.rotateX(-45.f * deltaTime);
-        }
-
-        if (isKeyDown(SDL_SCANCODE_UP)) {
-            camera.rotateY(45.f * deltaTime);
-        }
-
-        if (isKeyDown(SDL_SCANCODE_DOWN)) {
-            camera.rotateY(-45.f * deltaTime);
-        }
+        setCaptureMouse(!onMenu);
 
         camera.w = getWindowSize().w;
         camera.h = getWindowSize().h;
@@ -119,9 +107,6 @@ class MyProgram : public vkr::Program {
         view = camera.getView();
 
         clearColor = glm::vec3(0, 0, 0.4);
-
-        if (isKeyDown(SDL_SCANCODE_F))
-            cout << "FPS: " << 1.f / deltaTime << endl;
     }
 
    public:
@@ -132,7 +117,7 @@ class MyProgram : public vkr::Program {
         camera.w = WIDTH;
         camera.h = HEIGHT;
 
-        setScene("ducks");
+        init();
     }
 };
 

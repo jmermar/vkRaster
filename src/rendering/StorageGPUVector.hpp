@@ -80,7 +80,7 @@ class StorageGPUVector {
     }
 
     inline size_t getSize() { return std::max(data.size(), initialSize); }
-
+    inline size_t getLogicalSize() { return data.size(); }
     void updateElem(Handle elem, const T& content) {
         if (elem >= data.size()) {
             throw std::runtime_error(

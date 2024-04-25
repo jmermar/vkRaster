@@ -64,4 +64,6 @@ struct MaterialData {
     glm::vec4 color;
     int32_t texture;
 };
+
+enum TextureFormat { TEXTURE_FORMAT_RGBA32, TEXTURE_FORMAT_FLOAT32 };
 }  // namespace vkr

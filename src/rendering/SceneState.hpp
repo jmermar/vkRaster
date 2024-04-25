@@ -80,7 +80,7 @@ class SceneState {
 
     GlobalBounds bounds;
 
-    StorageGPUVector<DrawCommand> drawCommands{0, bounds};
+    StorageGPUVector<DrawCommand> drawCommands{0, bounds, MAX_DRAW_COMMANDS};
     StorageGPUVector<VkDrawIndexedIndirectCommand> cmdDraws{
         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, bounds, MAX_DRAW_COMMANDS};
     StorageGPUVector<DrawCommandDataBuffer> drawCommandData{
@@ -91,8 +91,6 @@ class SceneState {
     StorageGPUVector<uint32_t> indices{VK_BUFFER_USAGE_INDEX_BUFFER_BIT};
 
     std::vector<MeshAllocationData> meshesData;
-
-    std::unordered_set<TextureData*> textures;
 
     SceneState();
 
@@ -106,10 +104,10 @@ class SceneState {
     BufferHandle allocateMesh(const MeshData& data);
     void clearMeshes();
 
-    TextureData* allocateTexture(void* data, VkExtent3D size, VkFormat format,
-                                 VkImageUsageFlags usage,
-                                 GlobalBounds::SamplerType sampler);
-    void freeTexture(TextureData* data);
+    TextureData allocateTexture(void* data, VkExtent3D size, VkFormat format,
+                                VkImageUsageFlags usage,
+                                GlobalBounds::SamplerType sampler);
+    void freeTexture(TextureData& data);
 
     void addInstance(BufferHandle mesh, const glm::mat4& transform,
                      MaterialHandle material) {

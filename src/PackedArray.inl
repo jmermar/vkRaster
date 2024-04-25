@@ -5,7 +5,7 @@ namespace vkr {
 template <typename T>
 class PackedArray {
    public:
-    using Handle = uint64_t;
+    using Handle = int64_t;
 
    private:
     std::vector<int32_t> sparse;
@@ -15,6 +15,14 @@ class PackedArray {
     int32_t firstFree{-1};
 
    public:
+    void clear() {
+        sparse.clear();
+        free.clear();
+        sparseIndex.clear();
+        data.clear();
+        firstFree = -1;
+    }
+
     Handle add(const T& elem) {
         data.push_back(elem);
         if (firstFree < 0) {
@@ -61,7 +69,7 @@ class PackedArray {
 
     T* get(Handle handle) {
         if (handle > sparse.size() || sparse[handle] < 0) return 0;
-        return data[sparse[handle]];
+        return &data[sparse[handle]];
     }
 
     T* getData() { return data.data(); }

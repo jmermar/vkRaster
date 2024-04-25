@@ -20,12 +20,7 @@ SceneState::SceneState()
     : app(vk::vkApp::get()), bufferWritter(BufferWritter::get()) {
     instance = this;
 }
-SceneState::~SceneState() {
-    for (auto t : textures) {
-        app.deletion.addImage(t->image);
-        delete t;
-    }
-}
+SceneState::~SceneState() {}
 void SceneState::update() {
     drawCommands.update();
     drawCommandData.update();
@@ -40,12 +35,6 @@ void SceneState::clearScene() {
 
     drawCommands.clear();
     materials.clear();
-
-    for (auto t : textures) {
-        bounds.removeBind(t->bindPoint);
-        app.deletion.addImage(t->image);
-    }
-    textures.clear();
 }
 BufferHandle SceneState::allocateMesh(const MeshData& data) {
     glm::vec3 minCorner = data.vertices[0].position,
@@ -85,28 +74,27 @@ void SceneState::clearMeshes() {
     indices.clear();
 }
 
-TextureData* SceneState::allocateTexture(
-    void* data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage,
-    GlobalBounds::SamplerType samplerType) {
-    auto ret = new TextureData;
+TextureData SceneState::allocateTexture(void* data, VkExtent3D size,
+                                        VkFormat format,
+                                        VkImageUsageFlags usage,
+                                        GlobalBounds::SamplerType samplerType) {
+    TextureData ret{};
     auto device = app.system.device;
     auto allocator = app.system.allocator;
     vk::allocateImage(
-        ret->image, device, allocator, size, format,
+        ret.image, device, allocator, size, format,
         usage | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
         VMA_MEMORY_USAGE_GPU_ONLY);
 
-    bufferWritter.writeImage(data, ret->image.image, size);
+    bufferWritter.writeImage(data, ret.image.image, size);
 
-    ret->bindPoint = bounds.bindTexture(ret->image.imageView, samplerType);
-    textures.insert(ret);
+    ret.bindPoint = bounds.bindTexture(ret.image.imageView, samplerType);
+
     return ret;
 }
 
-void SceneState::freeTexture(TextureData* data) {
-    bounds.removeBind(data->bindPoint);
-    app.deletion.addImage(data->image);
-    textures.erase(data);
-    delete data;
+void SceneState::freeTexture(TextureData& data) {
+    bounds.removeBind(data.bindPoint);
+    app.deletion.addImage(data.image);
 }
 }  // namespace vkr
