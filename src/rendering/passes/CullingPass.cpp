@@ -73,7 +73,8 @@ void CullingPass::render(VkCommandBuffer cmd) {
                     sizeof(uint32_t), 0);
     vkCmdFillBuffer(cmd, sceneState.getDrawCommandData().getBuffer(),
                     offsetof(SceneState::DrawCommandDataBuffer, maxDraws),
-                    sizeof(uint32_t), sceneState.getDrawCommands().getSize());
+                    sizeof(uint32_t),
+                    sceneState.getDrawCommands().getLogicalSize());
     vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout,
                             0, 1, &sceneState.getBounds().getDescriptor(), 0,

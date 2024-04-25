@@ -55,8 +55,8 @@ BufferHandle SceneState::allocateMesh(const MeshData& data) {
         size = std::max(glm::length(v.position - center), size);
     }
 
-    uint32_t baseVertex = vertices.getSize();
-    uint32_t baseIndex = indices.getSize();
+    uint32_t baseVertex = vertices.getLogicalSize();
+    uint32_t baseIndex = indices.getLogicalSize();
 
     meshesData.push_back({.baseIndex = baseIndex,
                           .indicesCount = (uint32_t)data.indices.size(),

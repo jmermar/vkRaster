@@ -18,7 +18,7 @@ class MyProgram : public vkr::Program {
 
     void init(bool sponza = false) {
         scene.clear();
-        camera.position = {};
+        camera.position = {0, 1, 0};
         camera.target = {0, 0, 1};
 
         if (sponza) {
@@ -27,59 +27,72 @@ class MyProgram : public vkr::Program {
                               transform.getTransform());
         } else {
             vkr::TransformData transform;
+            transform.position.z = 5;
             scene.addInstance(scene.loadModel("Duck.glb"),
                               transform.getTransform());
         }
     }
 
     void onDrawGUI(float deltaTime) override {
-        static bool showWindow = true;
+        bool showMenu = onMenu;
+        bool isTrue = true;
         ImGui::SetNextWindowPos(ImVec2(16, 16));
         ImGui::Begin(
-            "vkRaster", &showWindow,
+            "vkRaster", &isTrue,
             ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration);
 
         ImGui::Text("FPS: %f\n", 1.f / deltaTime);
 
-        if (ImGui::Button("Restart")) {
-            init();
-        }
-
-        if (ImGui::Button("Add Duck")) {
-            vkr::TransformData transform;
-            transform.position = camera.position;
-            scene.addInstance(scene.loadModel("Duck.glb"),
-                              transform.getTransform());
-        }
-
-        if (ImGui::Button("Add Car")) {
-            vkr::TransformData transform;
-            transform.scale = glm::vec3(45);
-            transform.position = camera.position;
-            scene.addInstance(scene.loadModel("ToyCar.glb"),
-                              transform.getTransform());
-        }
-
         ImGui::InputFloat3("Camera Position", (float*)&camera.position, "%.3f",
                            ImGuiInputTextFlags_ReadOnly);
 
-        if (ImGui::Button("Add Sponza")) {
-            vkr::TransformData transform;
-            transform.position = camera.position;
-            scene.addInstance(scene.loadModel("tmp/sponza/sponza.glb"),
-                              transform.getTransform());
-        }
-
-        vkr::SceneState::get().global.culling = 0;
-        static bool frustumEnabled = true;
-        ImGui::Checkbox("Frustum culling", &frustumEnabled);
-
-        if (frustumEnabled)
-            vkr::SceneState::get().global.culling |= vkr::CULLING_TYPE_FRUSTUM;
-
-        ImGui::ShowDemoWindow();
-
         ImGui::End();
+
+        if (onMenu) {
+            ImGui::Begin("Menu", &showMenu, 0);
+
+            ImGui::LabelText("Scenes", "Scenes");
+            if (ImGui::Button("duck")) {
+                init();
+            }
+
+            if (ImGui::Button("Sponza")) {
+                init(true);
+            }
+
+            ImGui::LabelText("Add Objects", "Scenes");
+
+            if (ImGui::Button("Add Duck")) {
+                vkr::TransformData transform;
+                transform.position = camera.position;
+                scene.addInstance(scene.loadModel("Duck.glb"),
+                                  transform.getTransform());
+            }
+
+            if (ImGui::Button("Add Car")) {
+                vkr::TransformData transform;
+                transform.scale = glm::vec3(45);
+                transform.position = camera.position;
+                scene.addInstance(scene.loadModel("ToyCar.glb"),
+                                  transform.getTransform());
+            }
+
+            if (ImGui::Button("Add Sponza")) {
+                vkr::TransformData transform;
+                transform.position = camera.position;
+                scene.addInstance(scene.loadModel("tmp/sponza/sponza.glb"),
+                                  transform.getTransform());
+            }
+
+            vkr::SceneState::get().global.culling = 0;
+            static bool frustumEnabled = true;
+            ImGui::Checkbox("Frustum culling", &frustumEnabled);
+
+            if (frustumEnabled)
+                vkr::SceneState::get().global.culling |=
+                    vkr::CULLING_TYPE_FRUSTUM;
+            ImGui::End();
+        }
     }
 
     void onFrame(float deltaTime) override {
