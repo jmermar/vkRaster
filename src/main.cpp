@@ -77,6 +77,13 @@ class MyProgram : public vkr::Program {
                                   transform.getTransform());
             }
 
+            if (ImGui::Button("Add Damaged Helmet")) {
+                vkr::TransformData transform;
+                transform.position = camera.position;
+                scene.addInstance(scene.loadModel("DamagedHelmet.glb"),
+                                  transform.getTransform());
+            }
+
             if (ImGui::Button("Add Sponza")) {
                 vkr::TransformData transform;
                 transform.position = camera.position;
@@ -118,6 +125,8 @@ class MyProgram : public vkr::Program {
 
         proj = camera.getProj();
         view = camera.getView();
+
+        vkr::SceneState::get().global.camPosition = camera.position;
 
         clearColor = glm::vec3(0, 0, 0.4);
     }

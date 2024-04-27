@@ -12,7 +12,7 @@ struct vkApp;
 namespace vkr {
 class BufferWritter;
 class SceneState;
-class UnlitPass;
+class PBRPass;
 class CullingPass;
 class ImGUIPass;
 class Renderer {
@@ -20,7 +20,7 @@ class Renderer {
     vk::vkApp& app;
     BufferWritter* bufferWritter;
     SceneState* sceneState;
-    UnlitPass* unlitPass;
+    PBRPass* pbrPass;
     CullingPass* cullingPass;
     ImGUIPass* imGUIPass;
     Size screenSize;

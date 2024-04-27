@@ -301,7 +301,7 @@ void vkApp::initSwapchain(size_t w, size_t h) {
     vkb::Swapchain vkbSwapchain =
         swapchainBuilder
             .set_desired_format(VkSurfaceFormatKHR{
-                .format = VK_FORMAT_B8G8R8A8_UNORM,
+                .format = VK_FORMAT_B8G8R8A8_SRGB,
                 .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR})
             .set_desired_present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR)
             .set_desired_extent(w, h)

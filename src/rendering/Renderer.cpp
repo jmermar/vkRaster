@@ -7,7 +7,7 @@
 #include "SceneState.hpp"
 #include "passes/CullingPass.hpp"
 #include "passes/ImGUIPass.hpp"
-#include "passes/UnlitPass.hpp"
+#include "passes/PBRPass.hpp"
 #include "vk/vkApp.hpp"
 #include "vk/vkCommand.hpp"
 #include "vk/vkPipelines.hpp"
@@ -17,7 +17,7 @@ Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
     app.init(window, w, h);
     bufferWritter = new BufferWritter();
     sceneState = new SceneState();
-    unlitPass = new UnlitPass();
+    pbrPass = new PBRPass();
     cullingPass = new CullingPass();
     imGUIPass = new ImGUIPass();
     screenSize = {w, h};
@@ -26,7 +26,7 @@ Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
 Renderer::~Renderer() {
     vkDeviceWaitIdle(app.system.device);
     delete cullingPass;
-    delete unlitPass;
+    delete pbrPass;
     delete sceneState;
     delete bufferWritter;
     app.finish();
@@ -70,7 +70,7 @@ void Renderer::render(glm::vec4 clearColor) {
                                 VK_IMAGE_LAYOUT_GENERAL,
                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-    unlitPass->render(buffer);
+    pbrPass->render(buffer);
 
     imGUIPass->render(buffer);
 

@@ -62,7 +62,10 @@ struct MeshData {
 
 struct MaterialData {
     glm::vec4 color;
-    int32_t texture;
+    glm::vec4 metallicRoughness;
+    int32_t baseColortexture;
+    int32_t metallicRoughnessTexture;
+    int32_t normalTexture;
 };
 
 enum TextureFormat { TEXTURE_FORMAT_RGBA32, TEXTURE_FORMAT_FLOAT32 };

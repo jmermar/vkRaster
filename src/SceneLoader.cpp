@@ -98,14 +98,25 @@ SceneData loadScene(const std::string& path) {
 
     // Load materials
 
+#define GET_TEXTURE_IF_EXISTS(name)                        \
+    ((material.values.find(name) != material.values.end()) \
+         ? material.values[name].TextureIndex()            \
+         : -1)
+
     for (auto& material : model.materials) {
         auto& materialData = retScene.materials.emplace_back();
-        materialData.texture = -1;
+        materialData.baseColortexture = -1;
+        materialData.metallicRoughnessTexture = -1;
+        materialData.normalTexture = -1;
+        materialData.metallicRoughness = glm::vec4(0, 1, 0, 0);
         materialData.color = glm::vec4(1);
-        if (material.values.find("baseColorTexture") != material.values.end()) {
-            materialData.texture =
-                material.values["baseColorTexture"].TextureIndex();
-        }
+
+        materialData.baseColortexture =
+            GET_TEXTURE_IF_EXISTS("baseColorTexture");
+        materialData.metallicRoughnessTexture =
+            GET_TEXTURE_IF_EXISTS("metallicRoughnessTexture");
+
+        materialData.normalTexture = GET_TEXTURE_IF_EXISTS("normalTexture");
 
         if (material.values.find("baseColorFactor") != material.values.end()) {
             auto color = material.values["baseColorFactor"].ColorFactor();
@@ -114,6 +125,8 @@ SceneData loadScene(const std::string& path) {
             materialData.color.b = color[2];
         }
     }
+
+#undef GET_TEXTURE_IF_EXISTS(name)
 
     // Load meshes
 

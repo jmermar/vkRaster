@@ -60,8 +60,10 @@ class SceneState {
 
     struct MaterialData {
         glm::vec4 color;
-        TextureBind texture;
-        uint32_t pad[3];
+        TextureBind texColor;
+        TextureBind texRoughMet;
+        TextureBind texNormal;
+        uint32_t pad;
     };
 
     using MaterialHandle = StorageGPUVector<MaterialData>::Handle;
@@ -145,6 +147,7 @@ class SceneState {
 
     struct GlobalData {
         glm::mat4 proj, view;
+        glm::vec3 camPosition;
         glm::vec3 clearColor;
         CullingType culling;
     } global;

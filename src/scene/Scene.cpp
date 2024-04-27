@@ -1,7 +1,7 @@
 #include "Scene.hpp"
 
 #include <SceneLoader.hpp>
-
+#include <iostream>
 namespace vkr {
 Scene::Scene() {}
 Scene::~Scene() {}
@@ -22,16 +22,22 @@ ModelHandle Scene::loadModel(const std::string& path) {
             TEXTURE_FORMAT_RGBA32, 0, GlobalBounds::SAMPLER_LINEAR));
     }
 
+#define TRY_GET_TEXTURE(texture)                                     \
+    (texture >= 0 ? this->textures.get(textures[texture])->bindPoint \
+                  : (TextureBind)0)
+
     for (auto& material : scene.materials) {
         SceneState::MaterialData data;
-        auto tHandle = textures[material.texture];
-        data.texture = (material.texture >= 0)
-                           ? this->textures.get(tHandle)->bindPoint
-                           : (TextureBind)0;
+        data.texColor = TRY_GET_TEXTURE(material.baseColortexture);
+        data.texNormal = TRY_GET_TEXTURE(material.normalTexture);
+        data.texRoughMet = TRY_GET_TEXTURE(material.metallicRoughnessTexture);
+        std::cout << data.texRoughMet << std::endl;
         data.color = material.color;
 
         model.materials.push_back(SceneState::get().getMaterials().add(data));
     }
+
+#undef TRY_GET_TEXTURE(texture)
 
     for (auto& mesh : scene.meshes) {
         model.meshes.push_back(SceneState::get().allocateMesh(mesh));
