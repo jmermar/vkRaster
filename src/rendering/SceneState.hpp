@@ -26,6 +26,8 @@ constexpr uint32_t CULLING_TYPE_ALL = 3;
 constexpr uint32_t MAX_DRAW_COMMANDS = 1024 * 1024 * 10;
 constexpr uint32_t MAX_LIGHTS = 1024 * 1024;
 
+constexpr uint32_t MAX_LIGHTS_PER_TILE = 64;
+
 struct TextureData {
     vk::AllocatedImage image;
     TextureBind bindPoint;

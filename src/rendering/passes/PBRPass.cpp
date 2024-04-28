@@ -10,6 +10,7 @@ struct GPUDrawPushConstants {
     vkr::StorageBind lightsBind;
     vkr::StorageBind drawParamsBind;
     vkr::StorageBind materialsBind;
+    uint32_t numLights;
 };
 
 namespace vkr {
@@ -152,6 +153,7 @@ void PBRPass::render(VkCommandBuffer cmd) {
     push_constatns.materialsBind = sceneState.getMaterials().getBindPoint();
     push_constatns.cameraPosition = global.camera.position;
     push_constatns.lightsBind = sceneState.getLights().getBindPoint();
+    push_constatns.numLights = sceneState.getLights().getLogicalSize();
 
     vkCmdPushConstants(
         cmd, pipelineLayout,

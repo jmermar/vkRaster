@@ -38,6 +38,8 @@ layout(push_constant) uniform constants {
     uint lightsBind;
     uint drawParamsBind;
     uint materialsBind;
+
+    uint numLights;
 };
 
 #define RECIPROCAL_PI 0.3183098861837907
@@ -129,7 +131,7 @@ void main() {
 
     vec3 radiance = vec3(0);
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < numLights; i++) {
         LightPoint light = lights[lightsBind].lights[i];
 
         float dist = length(light.posAndIntensity.xyz - worldPos);
