@@ -4,8 +4,9 @@
 
 #include "../types.hpp"
 #include "BufferWritter.hpp"
+#include "GPUOnlyVector.inl"
 #include "GlobalBounds.hpp"
-#include "StorageGPUVector.hpp"
+#include "StorageGPUVector.inl"
 #include "vk/vkApp.hpp"
 #include "vk/vkDescriptors.hpp"
 
@@ -91,15 +92,16 @@ class SceneState {
     GlobalBounds bounds;
 
     StorageGPUVector<DrawCommand> drawCommands{0, bounds, MAX_DRAW_COMMANDS};
-    StorageGPUVector<VkDrawIndexedIndirectCommand> cmdDraws{
-        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, bounds, MAX_DRAW_COMMANDS};
-    StorageGPUVector<DrawCommandDataBuffer> drawCommandData{
-        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, bounds, 1};
-    StorageGPUVector<DrawParams> drawParams{0, bounds, MAX_DRAW_COMMANDS};
     StorageGPUVector<MaterialData> materials{0, bounds};
     StorageGPUVector<Vertex> vertices{VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
     StorageGPUVector<uint32_t> indices{VK_BUFFER_USAGE_INDEX_BUFFER_BIT};
     StorageGPUVector<LightPoint> lightPoints{0, bounds, MAX_LIGHTS};
+
+    GPUOnlyVector<VkDrawIndexedIndirectCommand> cmdDraws{
+        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, MAX_DRAW_COMMANDS, bounds};
+    GPUOnlyVector<DrawCommandDataBuffer> drawCommandData{
+        VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, 1, bounds};
+    GPUOnlyVector<DrawParams> drawParams{0, MAX_DRAW_COMMANDS, bounds};
 
     std::vector<MeshAllocationData> meshesData;
 
@@ -139,13 +141,13 @@ class SceneState {
     }
 
     StorageGPUVector<DrawCommand>& getDrawCommands() { return drawCommands; };
-    StorageGPUVector<VkDrawIndexedIndirectCommand>& getCmdDraws() {
+    GPUOnlyVector<VkDrawIndexedIndirectCommand>& getCmdDraws() {
         return cmdDraws;
     }
-    StorageGPUVector<DrawCommandDataBuffer>& getDrawCommandData() {
+    GPUOnlyVector<DrawCommandDataBuffer>& getDrawCommandData() {
         return drawCommandData;
     }
-    StorageGPUVector<DrawParams>& getDrawParams() { return drawParams; }
+    GPUOnlyVector<DrawParams>& getDrawParams() { return drawParams; }
     StorageGPUVector<MaterialData>& getMaterials() { return materials; }
     StorageGPUVector<Vertex>& getVertices() { return vertices; }
     StorageGPUVector<uint32_t>& getIndices() { return indices; }

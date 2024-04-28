@@ -128,8 +128,10 @@ class MyProgram : public vkr::Program {
             camera.position -= camera.target * deltaTime * walkSpeed;
         }
 
-        camera.rotateX(45.f * getMouseX());
-        camera.rotateY(45.f * getMouseY());
+        float sensitivity = 180.f;
+
+        camera.rotateX(45.f * getMouseX() * sensitivity * deltaTime);
+        camera.rotateY(45.f * getMouseY() * sensitivity * deltaTime);
 
         if (isKeyPressed(SDL_SCANCODE_ESCAPE)) {
             onMenu = !onMenu;

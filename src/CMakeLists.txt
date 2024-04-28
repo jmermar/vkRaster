@@ -16,7 +16,7 @@ add_executable (${PROJECT_NAME} ${SRC}
 
 add_dependencies(${PROJECT_NAME} Shaders)
 
-set_property(TARGET ${PROJECT_NAME} PROPERTY COMPILE_WARNING_AS_ERROR ON)
+set(COMPILE_WARNING_AS_ERROR ON)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -63,6 +63,8 @@ class Light {
         data = other.data;
         other.data = 0;
         other.handle = -1;
+
+        return *this;
     }
 
     void setPosition(const glm::vec3& position) {

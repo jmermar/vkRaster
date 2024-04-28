@@ -23,13 +23,14 @@ SceneState::SceneState()
 SceneState::~SceneState() {}
 void SceneState::update() {
     drawCommands.update();
-    drawCommandData.update();
-    cmdDraws.update();
-    drawParams.update();
     materials.update();
     vertices.update();
     indices.update();
     lightPoints.update();
+
+    cmdDraws.update();
+    drawCommandData.update();
+    drawParams.update();
 }
 void SceneState::clearScene() {
     clearMeshes();
