@@ -21,8 +21,12 @@ class MyProgram : public vkr::Program {
 
     vkr::Light cameraLight;
 
+    float intensity = 10;
+    float radius = 10;
+
     void init(bool sponza = false) {
         scene.clear();
+        lights.clear();
         camera.position = {0, 1, 0};
         camera.target = {0, 0, 1};
 
@@ -65,11 +69,16 @@ class MyProgram : public vkr::Program {
                 init(true);
             }
 
-            ImGui::LabelText("Add Objects", "Scenes");
-
+            ImGui::LabelText("Light", "Scenes");
             if (ImGui::Button("Add Light")) {
-                lights.push_back(scene.addLight(camera.position, 5, 5));
+                lights.push_back(
+                    scene.addLight(camera.position, radius, intensity));
             }
+
+            ImGui::SliderFloat("Intensity", &intensity, 0, 20);
+            ImGui::SliderFloat("Distance", &radius, 0, 20);
+
+            ImGui::LabelText("Add Objects", "Scenes");
 
             if (ImGui::Button("Add Duck")) {
                 vkr::TransformData transform;
@@ -129,6 +138,8 @@ class MyProgram : public vkr::Program {
         setCaptureMouse(!onMenu);
 
         cameraLight.setPosition(camera.position);
+        cameraLight.setIntensity(intensity);
+        cameraLight.setRadius(radius);
 
         camera.w = getWindowSize().w;
         camera.h = getWindowSize().h;
@@ -149,7 +160,7 @@ class MyProgram : public vkr::Program {
         camera.w = WIDTH;
         camera.h = HEIGHT;
 
-        cameraLight = scene.addLight(camera.position, 5, 5);
+        cameraLight = scene.addLight(camera.position, radius, intensity);
 
         init();
     }

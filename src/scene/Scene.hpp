@@ -68,6 +68,12 @@ class Light {
     void setPosition(const glm::vec3& position) {
         data->get(handle)->pos = position;
     }
+
+    void setIntensity(float intensity) {
+        data->get(handle)->intensity = intensity;
+    }
+
+    void setRadius(float radius) { data->get(handle)->radius = radius; }
 };
 
 using ModelHandle = PackedArray<ModelStorage>::Handle;
