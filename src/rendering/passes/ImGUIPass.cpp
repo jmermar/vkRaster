@@ -4,6 +4,7 @@
 #include <backends/imgui_impl_vulkan.h>
 #include <imgui.h>
 
+#include "../GlobalRenderData.hpp"
 #include "../vk/vkCommand.hpp"
 
 struct GPUPushConstants {
@@ -14,14 +15,13 @@ namespace vkr {
 ImGUIPass::ImGUIPass() : sceneState(SceneState::get()) {}
 ImGUIPass::~ImGUIPass() {}
 void ImGUIPass::render(VkCommandBuffer cmd) {
-    uint32_t w = app.getScreenW();
-    uint32_t h = app.getScreenH();
+    auto size = GlobalRenderData::get().windowSize;
 
     VkRenderingAttachmentInfo colorAttachment =
         vk::attachmentInfo(app.drawImage.imageView, nullptr,
                            VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkRenderingInfo renderInfo =
-        vk::renderingInfo({.width = w, .height = h}, &colorAttachment, nullptr);
+    VkRenderingInfo renderInfo = vk::renderingInfo(
+        {.width = size.w, .height = size.h}, &colorAttachment, nullptr);
 
     vkCmdBeginRendering(cmd, &renderInfo);
 

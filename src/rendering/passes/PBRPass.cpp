@@ -1,13 +1,13 @@
 #include "PBRPass.hpp"
 
+#include "../GlobalRenderData.hpp"
 #include "../SceneState.hpp"
 
 struct GPUDrawPushConstants {
     glm::mat4 projViewMatrix;
     glm::vec3 cameraPosition;
     float pad;
-    glm::vec3 lightPosition;
-    float pad2;
+    vkr::StorageBind lightsBind;
     vkr::StorageBind drawParamsBind;
     vkr::StorageBind materialsBind;
 };
@@ -109,8 +109,9 @@ void PBRPass::render(VkCommandBuffer cmd) {
     if (!indexBuffer) {
         return;
     }
-    uint32_t w = app.getScreenW();
-    uint32_t h = app.getScreenH();
+    auto& global = GlobalRenderData::get();
+    auto w = global.windowSize.w;
+    auto h = global.windowSize.h;
 
     VkRenderingAttachmentInfo colorAttachment = vk::attachmentInfo(
         app.drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_GENERAL);
@@ -146,12 +147,11 @@ void PBRPass::render(VkCommandBuffer cmd) {
     vkCmdSetScissor(cmd, 0, 1, &scissor);
 
     GPUDrawPushConstants push_constatns;
-    push_constatns.projViewMatrix =
-        sceneState.global.proj * sceneState.global.view;
+    push_constatns.projViewMatrix = global.projMatrix * global.viewMatrix;
     push_constatns.drawParamsBind = sceneState.getDrawParams().getBindPoint();
     push_constatns.materialsBind = sceneState.getMaterials().getBindPoint();
-    push_constatns.cameraPosition = sceneState.global.camPosition;
-    push_constatns.lightPosition = sceneState.global.camPosition;
+    push_constatns.cameraPosition = global.camera.position;
+    push_constatns.lightsBind = sceneState.getLights().getBindPoint();
 
     vkCmdPushConstants(
         cmd, pipelineLayout,

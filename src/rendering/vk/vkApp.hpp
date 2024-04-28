@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 
+#include "types.hpp"
 #include "vkDeletion.hpp"
 #include "vkImage.hpp"
 #include "vkInit.hpp"
@@ -72,8 +73,7 @@ struct vkApp {
 
     DeletionQueue deletion;
 
-    inline uint32_t getScreenW() { return screenW; }
-    inline uint32_t getScreenH() { return screenH; }
+    const vkr::Size& getScreenSize() { return screenSize; }
 
     void immediateSubmit(std::function<void(VkCommandBuffer cmd)>&& function);
 
@@ -94,7 +94,7 @@ struct vkApp {
 
     void prepareUploads(VkCommandBuffer cmd);
 
-    uint32_t screenW, screenH;
+    vkr::Size screenSize;
 
     uint32_t frameCounter{};
     uint32_t swapchainImageIndex = 0;

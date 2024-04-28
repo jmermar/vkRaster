@@ -2,6 +2,7 @@
 
 #include <glm/gtc/matrix_access.hpp>
 
+#include "../GlobalRenderData.hpp"
 #include "../SceneState.hpp"
 
 namespace vkr {
@@ -79,15 +80,15 @@ void CullingPass::render(VkCommandBuffer cmd) {
     vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_COMPUTE, pipelineLayout,
                             0, 1, &sceneState.getBounds().getDescriptor(), 0,
                             0);
-
+    auto& global = GlobalRenderData::get();
     GPUCullPushConstants push;
     push.indirectDrawBind = sceneState.getCmdDraws().getBindPoint();
     push.multiDrawDataBind = sceneState.getDrawCommandData().getBindPoint();
     push.instancesBind = sceneState.getDrawCommands().getBindPoint();
     push.drawParamsBind = sceneState.getDrawParams().getBindPoint();
-    push.culling = sceneState.global.culling;
+    push.culling = global.frustumCulling;
 
-    auto m = glm::transpose(sceneState.global.proj * sceneState.global.view);
+    auto m = glm::transpose(global.projMatrix * global.viewMatrix);
 
     push.right = m[3] - m[0];
     push.left = m[3] + m[0];

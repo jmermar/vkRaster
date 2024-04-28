@@ -118,7 +118,7 @@ void vkApp::regenerate() {
     SDL_GetWindowSize(window, &w, &h);
 
     initSwapchain(w, h);
-    initImages(screenW, screenH);
+    initImages(screenSize.w, screenSize.h);
     shouldRegenerate = false;
 }
 void vkApp::initImgui() {
@@ -172,8 +172,6 @@ void vkApp::initImgui() {
     init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
     ImGui_ImplVulkan_Init(&init_info);
-
-    ImGui_ImplVulkan_CreateFontsTexture();
 }
 
 void vkApp::initCommands() {
@@ -255,8 +253,8 @@ void vkApp::renderEnd() {
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
     vk::copyImageToImage(buffer, drawImage.image, swapchainImage,
-                         {.width = screenW, .height = screenH},
-                         {.width = screenW, .height = screenH});
+                         {.width = screenSize.w, .height = screenSize.h},
+                         {.width = screenSize.w, .height = screenSize.h});
 
     vkCommands::transitionImage(buffer, swapchainImage,
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -301,7 +299,7 @@ void vkApp::initSwapchain(size_t w, size_t h) {
     vkb::Swapchain vkbSwapchain =
         swapchainBuilder
             .set_desired_format(VkSurfaceFormatKHR{
-                .format = VK_FORMAT_B8G8R8A8_SRGB,
+                .format = VK_FORMAT_B8G8R8A8_UNORM,
                 .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR})
             .set_desired_present_mode(VK_PRESENT_MODE_IMMEDIATE_KHR)
             .set_desired_extent(w, h)
@@ -309,8 +307,8 @@ void vkApp::initSwapchain(size_t w, size_t h) {
             .build()
             .value();
 
-    screenW = vkbSwapchain.extent.width;
-    screenH = vkbSwapchain.extent.height;
+    screenSize.w = vkbSwapchain.extent.width;
+    screenSize.h = vkbSwapchain.extent.height;
 
     swapchain.swapchain = vkbSwapchain.swapchain;
     swapchain.images = vkbSwapchain.get_images().value();

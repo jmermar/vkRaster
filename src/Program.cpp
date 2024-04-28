@@ -10,10 +10,15 @@
 #include <stdexcept>
 
 #include "System.hpp"
+#include "rendering/GlobalRenderData.hpp"
+#include "rendering/Renderer.hpp"
 #include "rendering/SceneState.hpp"
 namespace vkr {
 Program::Program(const Size& size, const char* name)
-    : size(size), winName(name) {}
+    : size(size),
+      winName(name),
+      renderer(std::make_unique<Renderer>(system.getWindow(), size.w, size.h)) {
+}
 Program::~Program() {}
 void Program::run() {
     bool shouldQuit = false;
@@ -26,13 +31,20 @@ void Program::run() {
             0) {
             int w, h;
             SDL_GetWindowSize(system.getWindow(), &w, &h);
+            auto& global = GlobalRenderData::get();
+
             size.w = w;
             size.h = h;
+
+            global.windowSize.w = w;
+            global.windowSize.h = h;
 
             ticks = SDL_GetTicks();
             system.handleInput(shouldQuit);
 
             onFrame(delta);
+
+            scene.update();
 
             ImGui_ImplVulkan_NewFrame();
             ImGui_ImplSDL3_NewFrame();
@@ -42,10 +54,10 @@ void Program::run() {
 
             ImGui::Render();
 
-            SceneState::get().global.proj = proj;
-            SceneState::get().global.view = view;
+            global.projMatrix = global.camera.getProj();
+            global.viewMatrix = global.camera.getView();
 
-            renderer.render(glm::vec4(clearColor, 1.0));
+            renderer->render(glm::vec4(clearColor, 1.0));
         }
     }
 }

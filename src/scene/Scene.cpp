@@ -31,7 +31,6 @@ ModelHandle Scene::loadModel(const std::string& path) {
         data.texColor = TRY_GET_TEXTURE(material.baseColortexture);
         data.texNormal = TRY_GET_TEXTURE(material.normalTexture);
         data.texRoughMet = TRY_GET_TEXTURE(material.metallicRoughnessTexture);
-        std::cout << data.texRoughMet << std::endl;
         data.color = material.color;
 
         model.materials.push_back(SceneState::get().getMaterials().add(data));
@@ -54,6 +53,13 @@ ModelHandle Scene::loadModel(const std::string& path) {
     modelsLoaded[path] = handle;
     return handle;
 }
+
+void Scene::update() {
+    sceneState.getLights().clear();
+    sceneState.getLights().insert(
+        std::span<LightPoint>(lights.getData(), lights.getSize()));
+}
+
 TextureHandle Scene::getTexture(const std::string& path) {}
 TextureHandle Scene::allocateTexture(void* data, Size size,
                                      TextureFormat format,
@@ -78,6 +84,17 @@ void Scene::addInstance(ModelHandle model, const glm::mat4& transform) {
                                transform * ins.transform,
                                modelData.materials[ins.material]);
     }
+}
+Light Scene::addLight(const glm::vec3& position, float radius,
+                      float intensity) {
+    LightPoint light;
+    light.pos = position;
+    light.radius = radius;
+    light.intensity = intensity;
+
+    auto handle = lights.add(light);
+
+    return Light(handle, &lights);
 }
 void Scene::clearTextures() {
     auto data = textures.getData();

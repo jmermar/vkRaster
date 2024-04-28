@@ -16,6 +16,59 @@ struct ModelStorage {
     };
     std::vector<Instance> instances;
 };
+using LightPointHandle = PackedArray<LightPoint>::Handle;
+class Light {
+   private:
+    PackedArray<LightPoint>* data{};
+    LightPointHandle handle{-1};
+    Light(LightPointHandle handle, PackedArray<LightPoint>* data)
+        : handle(handle), data(data) {}
+
+    inline void destroy() {
+        if (data && handle >= 0) {
+            data->remove(handle);
+            data = 0;
+            handle = -1;
+        }
+    }
+
+    friend class Scene;
+
+   public:
+    ~Light() { destroy(); }
+    Light() = default;
+    Light(const Light& other) {
+        handle = other.data->add(*other.data->get(other.handle));
+        data = other.data;
+    }
+
+    Light& operator=(const Light& other) {
+        destroy();
+        handle = other.data->add(*other.data->get(other.handle));
+        data = other.data;
+
+        return *this;
+    }
+
+    Light(Light&& other) {
+        handle = other.handle;
+        data = other.data;
+        other.data = 0;
+        other.handle = -1;
+    }
+
+    Light& operator=(Light&& other) {
+        destroy();
+        handle = other.handle;
+        data = other.data;
+        other.data = 0;
+        other.handle = -1;
+    }
+
+    void setPosition(const glm::vec3& position) {
+        data->get(handle)->pos = position;
+    }
+};
 
 using ModelHandle = PackedArray<ModelStorage>::Handle;
 class Scene {
@@ -27,6 +80,7 @@ class Scene {
 
     TextureDataArray textures;
     ModelArray models;
+    PackedArray<LightPoint> lights;
 
     SceneState& sceneState{SceneState::get()};
 
@@ -46,7 +100,10 @@ class Scene {
                                   VkImageUsageFlags usage,
                                   GlobalBounds::SamplerType samplerType);
 
+    void update();
+
     void addInstance(ModelHandle model, const glm::mat4& transform);
+    Light addLight(const glm::vec3& position, float radius, float intensity);
 
     inline void clear() {
         clearTextures();

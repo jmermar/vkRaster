@@ -20,13 +20,22 @@ struct Material {
     uint pad;
 };
 
+struct LightPoint {
+    vec4 posAndIntensity;
+    float radius;
+    float pad[3];
+};
+
 layout(binding = 1, std430) readonly buffer Materials { Material materials[]; }
 materials[];
+
+layout(binding = 1, std430) readonly buffer Lights { LightPoint lights[]; }
+lights[];
 
 layout(push_constant) uniform constants {
     mat4 projView;
     vec4 cameraPosition;
-    vec4 lightPosition;
+    uint lightsBind;
     uint drawParamsBind;
     uint materialsBind;
 };
@@ -115,21 +124,30 @@ void main() {
     float roughness = texture(textures[m.texRoughMet], uv).g;
     float metallic = texture(textures[m.texRoughMet], uv).r;
 
-    vec3 lightDir = normalize(lightPosition.xyz - worldPos);
     vec3 viewDir = normalize(cameraPosition.xyz - worldPos);
     vec3 n = worldNormal;
 
-    float reflectance = 0.5;
-    float irradiPerp = 10;
-
-    float irradiance = max(dot(lightDir, n), 0.0) * irradiPerp;
-
     vec3 radiance = vec3(0);
 
-    if (irradiance > 0.0) {
-        vec3 brdf = brdfMicrofacet(lightDir, viewDir, n, metallic, roughness,
-                                   baseCol, reflectance);
-        radiance += brdf * irradiance * vec3(1);
+    for (int i = 0; i < 10; i++) {
+        LightPoint light = lights[lightsBind].lights[i];
+
+        float dist = length(light.posAndIntensity.xyz - worldPos);
+
+        vec3 lightDir = normalize(light.posAndIntensity.xyz - worldPos);
+
+        float reflectance = 0.5;
+        float attenuation = smoothstep(
+            light.radius, 0, length(light.posAndIntensity.xyz - worldPos));
+        float irradiPerp = light.posAndIntensity.w * attenuation;
+
+        float irradiance = max(dot(lightDir, n), 0.0) * irradiPerp;
+
+        if (irradiance > 0.0) {
+            vec3 brdf = brdfMicrofacet(lightDir, viewDir, n, metallic,
+                                       roughness, baseCol, reflectance);
+            radiance += brdf * irradiance * vec3(1);
+        }
     }
 
     outColor.rgb = radiance;

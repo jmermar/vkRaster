@@ -23,6 +23,7 @@ constexpr uint32_t CULLING_TYPE_OCCLUSION = 2;
 constexpr uint32_t CULLING_TYPE_ALL = 3;
 
 constexpr uint32_t MAX_DRAW_COMMANDS = 1024 * 1024 * 10;
+constexpr uint32_t MAX_LIGHTS = 1024 * 1024;
 
 struct TextureData {
     vk::AllocatedImage image;
@@ -32,6 +33,13 @@ struct TextureData {
 struct StorageBufferDesc {
     StorageBind bind{};
     VkBuffer buffer{};
+};
+
+struct LightPoint {
+    glm::vec3 pos;
+    float intensity;
+    float radius;
+    float pad[3];
 };
 
 class SceneState {
@@ -91,6 +99,7 @@ class SceneState {
     StorageGPUVector<MaterialData> materials{0, bounds};
     StorageGPUVector<Vertex> vertices{VK_BUFFER_USAGE_VERTEX_BUFFER_BIT};
     StorageGPUVector<uint32_t> indices{VK_BUFFER_USAGE_INDEX_BUFFER_BIT};
+    StorageGPUVector<LightPoint> lightPoints{0, bounds, MAX_LIGHTS};
 
     std::vector<MeshAllocationData> meshesData;
 
@@ -140,16 +149,10 @@ class SceneState {
     StorageGPUVector<MaterialData>& getMaterials() { return materials; }
     StorageGPUVector<Vertex>& getVertices() { return vertices; }
     StorageGPUVector<uint32_t>& getIndices() { return indices; }
+    StorageGPUVector<LightPoint>& getLights() { return lightPoints; }
 
     GlobalBounds& getBounds() { return bounds; }
 
     static SceneState& get() { return *instance; }
-
-    struct GlobalData {
-        glm::mat4 proj, view;
-        glm::vec3 camPosition;
-        glm::vec3 clearColor;
-        CullingType culling;
-    } global;
 };
 }  // namespace vkr

@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
+#include "rendering/GlobalRenderData.hpp"
 #include "rendering/SceneState.hpp"
 #include "vkRaster.hpp"
 using namespace std;
@@ -15,6 +16,10 @@ class MyProgram : public vkr::Program {
     float walkSpeed = 5.f;
     vkr::CameraData camera;
     bool onMenu = false;
+
+    std::vector<vkr::Light> lights;
+
+    vkr::Light cameraLight;
 
     void init(bool sponza = false) {
         scene.clear();
@@ -62,6 +67,10 @@ class MyProgram : public vkr::Program {
 
             ImGui::LabelText("Add Objects", "Scenes");
 
+            if (ImGui::Button("Add Light")) {
+                lights.push_back(scene.addLight(camera.position, 5, 5));
+            }
+
             if (ImGui::Button("Add Duck")) {
                 vkr::TransformData transform;
                 transform.position = camera.position;
@@ -91,13 +100,12 @@ class MyProgram : public vkr::Program {
                                   transform.getTransform());
             }
 
-            vkr::SceneState::get().global.culling = 0;
+            vkr::GlobalRenderData::get().frustumCulling = false;
             static bool frustumEnabled = true;
             ImGui::Checkbox("Frustum culling", &frustumEnabled);
 
             if (frustumEnabled)
-                vkr::SceneState::get().global.culling |=
-                    vkr::CULLING_TYPE_FRUSTUM;
+                vkr::GlobalRenderData::get().frustumCulling = true;
             ImGui::End();
         }
     }
@@ -120,13 +128,15 @@ class MyProgram : public vkr::Program {
 
         setCaptureMouse(!onMenu);
 
+        cameraLight.setPosition(camera.position);
+
         camera.w = getWindowSize().w;
         camera.h = getWindowSize().h;
 
         proj = camera.getProj();
         view = camera.getView();
 
-        vkr::SceneState::get().global.camPosition = camera.position;
+        vkr::GlobalRenderData::get().camera = camera;
 
         clearColor = glm::vec3(0, 0, 0.4);
     }
@@ -138,6 +148,8 @@ class MyProgram : public vkr::Program {
 
         camera.w = WIDTH;
         camera.h = HEIGHT;
+
+        cameraLight = scene.addLight(camera.position, 5, 5);
 
         init();
     }

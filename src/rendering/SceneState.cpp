@@ -29,6 +29,7 @@ void SceneState::update() {
     materials.update();
     vertices.update();
     indices.update();
+    lightPoints.update();
 }
 void SceneState::clearScene() {
     clearMeshes();

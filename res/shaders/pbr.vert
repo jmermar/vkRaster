@@ -17,7 +17,7 @@ layout(location = 4) out flat uint material;
 layout(push_constant) uniform constants {
     mat4 projView;
     vec4 cameraPosition;
-    vec4 lightPosition;
+    uint lightsBind;
     uint drawParamsBind;
     uint materialsBind;
 }

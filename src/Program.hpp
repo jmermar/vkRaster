@@ -2,16 +2,16 @@
 #include <memory>
 
 #include "System.hpp"
-#include "rendering/Renderer.hpp"
 #include "scene/Scene.hpp"
 #include "types.hpp"
 namespace vkr {
+class Renderer;
 class Program {
    private:
     Size size{};
     const char* winName{};
     System system{size, winName};
-    Renderer renderer{system.getWindow(), size.w, size.h};
+    std::unique_ptr<Renderer> renderer;
 
    protected:
     Scene scene{};
