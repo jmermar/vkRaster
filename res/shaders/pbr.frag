@@ -1,6 +1,8 @@
 #version 450
 #extension GL_EXT_nonuniform_qualifier : require
 
+#define MAX_NUM_LIGHTS_PER_TILE 128
+
 // output write
 layout(location = 0) out vec4 outColor;
 
@@ -32,14 +34,17 @@ materials[];
 layout(binding = 1, std430) readonly buffer Lights { LightPoint lights[]; }
 lights[];
 
+layout(binding = 1) buffer LightIndex { int lightIndex[]; }
+lightIndex[];
+
 layout(push_constant) uniform constants {
     mat4 projView;
     vec4 cameraPosition;
     uint lightsBind;
     uint drawParamsBind;
     uint materialsBind;
-
-    uint numLights;
+    uint lightIndexBind;
+    uint numberOfTilesX;
 };
 
 #define RECIPROCAL_PI 0.3183098861837907
@@ -120,6 +125,10 @@ vec3 brdfMicrofacet(in vec3 L, in vec3 V, in vec3 N, in float metallic,
 }
 
 void main() {
+    ivec2 location = ivec2(gl_FragCoord.xy);
+    ivec2 tileID = location / ivec2(16, 16);
+    uint index = tileID.y * numberOfTilesX + tileID.x;
+
     Material m = materials[materialsBind].materials[material];
 
     vec3 baseCol = texture(textures[m.texColor], uv).xyz;
@@ -130,17 +139,20 @@ void main() {
     vec3 n = worldNormal;
 
     vec3 radiance = vec3(0);
-
-    for (int i = 0; i < numLights; i++) {
-        LightPoint light = lights[lightsBind].lights[i];
+    uint offset = index * 128;
+    for (int i = 0;
+         i < 128 && lightIndex[lightIndexBind].lightIndex[offset + i] != -1;
+         i++) {
+        LightPoint light =
+            lights[lightsBind]
+                .lights[lightIndex[lightIndexBind].lightIndex[offset + i]];
 
         float dist = length(light.posAndIntensity.xyz - worldPos);
 
         vec3 lightDir = normalize(light.posAndIntensity.xyz - worldPos);
 
         float reflectance = 0.5;
-        float attenuation = smoothstep(
-            light.radius, 0, length(light.posAndIntensity.xyz - worldPos));
+        float attenuation = smoothstep(light.radius, 0, dist);
         float irradiPerp = light.posAndIntensity.w * attenuation;
 
         float irradiance = max(dot(lightDir, n), 0.0) * irradiPerp;

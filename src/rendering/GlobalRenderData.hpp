@@ -10,6 +10,7 @@ struct GlobalRenderData {
     glm::mat4 viewMatrix;
     glm::mat4 projMatrix;
     bool sizeChanged;
+    Size screenTileSize;
 
     static GlobalRenderData& get() {
         static GlobalRenderData ins;

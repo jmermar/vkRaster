@@ -1,4 +1,5 @@
 #include "vkCommand.hpp"
+
 #include "vkUtils.hpp"
 
 VkImageSubresourceRange image_subresource_range(VkImageAspectFlags aspectMask) {
@@ -11,7 +12,6 @@ VkImageSubresourceRange image_subresource_range(VkImageAspectFlags aspectMask) {
 
     return subImage;
 }
-
 
 namespace vkCommands {
 void transitionImage(VkCommandBuffer cmd, VkImage image,
@@ -30,7 +30,8 @@ void transitionImage(VkCommandBuffer cmd, VkImage image,
     imageBarrier.newLayout = newLayout;
 
     VkImageAspectFlags aspectMask =
-        (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL)
+        (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL ||
+         newLayout == VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL)
             ? VK_IMAGE_ASPECT_DEPTH_BIT
             : VK_IMAGE_ASPECT_COLOR_BIT;
     imageBarrier.subresourceRange = image_subresource_range(aspectMask);

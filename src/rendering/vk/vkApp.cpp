@@ -8,6 +8,9 @@
 #include "vkCommand.hpp"
 #include "vkPipelines.hpp"
 #include "vkSync.hpp"
+
+constexpr auto PRESENTATION = VK_PRESENT_MODE_FIFO_KHR;
+
 VkSemaphoreSubmitInfo semaphore_submit_info(VkPipelineStageFlags2 stageMask,
                                             VkSemaphore semaphore) {
     VkSemaphoreSubmitInfo submitInfo{};
@@ -301,14 +304,14 @@ void vkApp::initSwapchain(size_t w, size_t h) {
             .set_desired_format(VkSurfaceFormatKHR{
                 .format = VK_FORMAT_B8G8R8A8_UNORM,
                 .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR})
-            .set_desired_present_mode(VK_PRESENT_MODE_MAILBOX_KHR)
+            .set_desired_present_mode(PRESENTATION)
             .set_desired_extent(w, h)
             .add_image_usage_flags(VK_IMAGE_USAGE_TRANSFER_DST_BIT)
             .build()
             .value();
 
-    screenSize.w = vkbSwapchain.extent.width;
-    screenSize.h = vkbSwapchain.extent.height;
+    screenSize.w = vkbSwapchain.extent.width - 1;
+    screenSize.h = vkbSwapchain.extent.height - 1;
 
     swapchain.swapchain = vkbSwapchain.swapchain;
     swapchain.images = vkbSwapchain.get_images().value();
@@ -354,7 +357,8 @@ void vkApp::initImages(size_t w, size_t h) {
     vk::allocateImage(depthImage, system.device, system.allocator,
                       {.width = (uint32_t)w, .height = (uint32_t)h, .depth = 1},
                       VK_FORMAT_D32_SFLOAT,
-                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
+                          VK_IMAGE_USAGE_SAMPLED_BIT,
                       VMA_MEMORY_USAGE_GPU_ONLY, VK_IMAGE_ASPECT_DEPTH_BIT);
 }
 void vkApp::destroyCommands() {

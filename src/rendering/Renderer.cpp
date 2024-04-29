@@ -7,6 +7,7 @@
 #include "SceneState.hpp"
 #include "passes/CullingPass.hpp"
 #include "passes/ImGUIPass.hpp"
+#include "passes/LightCullingPass.hpp"
 #include "passes/PBRPass.hpp"
 #include "vk/vkApp.hpp"
 #include "vk/vkCommand.hpp"
@@ -20,6 +21,7 @@ Renderer::Renderer(SDL_Window* window, uint32_t w, uint32_t h)
     pbrPass = new PBRPass();
     cullingPass = new CullingPass();
     imGUIPass = new ImGUIPass();
+    lightCullingPass = new LightCullingPass();
     screenSize = {w, h};
 }
 
@@ -46,8 +48,16 @@ void Renderer::render(glm::vec4 clearColor) {
     auto renderSemaphore = frame.renderSemaphore;
     auto swapchainSemaphore = frame.swapchainSemaphore;
     auto buffer = frame.buffer;
+    vkCommands::transitionImage(buffer, app.depthImage.image,
+                                VK_IMAGE_LAYOUT_UNDEFINED,
+                                VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL);
 
+    lightCullingPass->render(buffer);
     cullingPass->render(buffer);
+
+    vkCommands::transitionImage(buffer, app.depthImage.image,
+                                VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL,
+                                VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
 
     vkCommands::transitionImage(buffer, app.drawImage.image,
                                 VK_IMAGE_LAYOUT_UNDEFINED,

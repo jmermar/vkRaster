@@ -22,7 +22,7 @@ class MyProgram : public vkr::Program {
     vkr::Light cameraLight;
 
     float intensity = 10;
-    float radius = 10;
+    float radius = 0;
 
     void init(bool sponza = false) {
         scene.clear();
@@ -34,6 +34,15 @@ class MyProgram : public vkr::Program {
             vkr::TransformData transform;
             scene.addInstance(scene.loadModel("tmp/sponza/sponza.glb"),
                               transform.getTransform());
+
+            for (int y = -10; y < 10; y++) {
+                for (int x = -10; x < 10; x++) {
+                    for (int z = -10; z < 10; z++) {
+                        lights.push_back(
+                            scene.addLight(glm::vec3(x, y, z) * 2.f, 2, 3));
+                    }
+                }
+            }
         } else {
             vkr::TransformData transform;
             transform.position.z = 5;
@@ -151,7 +160,7 @@ class MyProgram : public vkr::Program {
 
         vkr::GlobalRenderData::get().camera = camera;
 
-        clearColor = glm::vec3(0, 0, 0.4);
+        clearColor = glm::vec3(0, 0, 0);
     }
 
    public:

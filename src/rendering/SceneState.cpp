@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "BufferWritter.hpp"
+#include "GlobalRenderData.hpp"
 #include "vk/vkBuffer.hpp"
 #include "vk/vkImage.hpp"
 #define DESTROY_BUFFER(b)                                                   \
@@ -31,6 +32,22 @@ void SceneState::update() {
     cmdDraws.update();
     drawCommandData.update();
     drawParams.update();
+
+    // Update Light Tile size
+
+    auto& size = GlobalRenderData::get().windowSize;
+    auto tilesX = (size.w + 15) / 16;
+    auto tilesY = (size.h + 15) / 16;
+    auto tiles = tilesX * tilesY;
+
+    if (lightTiles.getSize() != tiles) {
+        lightTiles.resize(tiles);
+    }
+
+    GlobalRenderData::get().screenTileSize.w = tilesX;
+    GlobalRenderData::get().screenTileSize.h = tilesY;
+
+    lightTiles.update();
 }
 void SceneState::clearScene() {
     clearMeshes();

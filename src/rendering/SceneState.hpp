@@ -26,7 +26,7 @@ constexpr uint32_t CULLING_TYPE_ALL = 3;
 constexpr uint32_t MAX_DRAW_COMMANDS = 1024 * 1024 * 10;
 constexpr uint32_t MAX_LIGHTS = 1024 * 1024;
 
-constexpr uint32_t MAX_LIGHTS_PER_TILE = 64;
+constexpr uint32_t MAX_LIGHTS_PER_TILE = 128;
 
 struct TextureData {
     vk::AllocatedImage image;
@@ -49,6 +49,9 @@ class SceneState {
     friend class Renderer;
 
    public:
+    struct LightTile {
+        int lights[MAX_LIGHTS_PER_TILE];
+    };
     struct DrawCommandDataBuffer {
         uint32_t drawCounts;
         uint32_t maxDraws;
@@ -104,6 +107,7 @@ class SceneState {
     GPUOnlyVector<DrawCommandDataBuffer> drawCommandData{
         VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT, 1, bounds};
     GPUOnlyVector<DrawParams> drawParams{0, MAX_DRAW_COMMANDS, bounds};
+    GPUOnlyVector<LightTile> lightTiles{0, 1, bounds};
 
     std::vector<MeshAllocationData> meshesData;
 
@@ -143,6 +147,11 @@ class SceneState {
     }
 
     StorageGPUVector<DrawCommand>& getDrawCommands() { return drawCommands; };
+    StorageGPUVector<MaterialData>& getMaterials() { return materials; }
+    StorageGPUVector<Vertex>& getVertices() { return vertices; }
+    StorageGPUVector<uint32_t>& getIndices() { return indices; }
+    StorageGPUVector<LightPoint>& getLights() { return lightPoints; }
+
     GPUOnlyVector<VkDrawIndexedIndirectCommand>& getCmdDraws() {
         return cmdDraws;
     }
@@ -150,10 +159,7 @@ class SceneState {
         return drawCommandData;
     }
     GPUOnlyVector<DrawParams>& getDrawParams() { return drawParams; }
-    StorageGPUVector<MaterialData>& getMaterials() { return materials; }
-    StorageGPUVector<Vertex>& getVertices() { return vertices; }
-    StorageGPUVector<uint32_t>& getIndices() { return indices; }
-    StorageGPUVector<LightPoint>& getLights() { return lightPoints; }
+    GPUOnlyVector<LightTile>& getLighTile() { return lightTiles; }
 
     GlobalBounds& getBounds() { return bounds; }
 

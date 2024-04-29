@@ -15,7 +15,7 @@ namespace vkr {
 ImGUIPass::ImGUIPass() : sceneState(SceneState::get()) {}
 ImGUIPass::~ImGUIPass() {}
 void ImGUIPass::render(VkCommandBuffer cmd) {
-    auto size = GlobalRenderData::get().windowSize;
+    auto size = app.getScreenSize();
 
     VkRenderingAttachmentInfo colorAttachment =
         vk::attachmentInfo(app.drawImage.imageView, nullptr,

@@ -15,12 +15,14 @@ class SceneState;
 class PBRPass;
 class CullingPass;
 class ImGUIPass;
+class LightCullingPass;
 class Renderer {
    private:
     vk::vkApp& app;
     BufferWritter* bufferWritter;
     SceneState* sceneState;
     PBRPass* pbrPass;
+    LightCullingPass* lightCullingPass;
     CullingPass* cullingPass;
     ImGUIPass* imGUIPass;
     Size screenSize;

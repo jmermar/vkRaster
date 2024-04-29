@@ -10,7 +10,8 @@ struct GPUDrawPushConstants {
     vkr::StorageBind lightsBind;
     vkr::StorageBind drawParamsBind;
     vkr::StorageBind materialsBind;
-    uint32_t numLights;
+    vkr::StorageBind lightIndexBind;
+    uint32_t tilesW;
 };
 
 namespace vkr {
@@ -110,9 +111,11 @@ void PBRPass::render(VkCommandBuffer cmd) {
     if (!indexBuffer) {
         return;
     }
+    auto& size = app.getScreenSize();
+    auto w = size.w;
+    auto h = size.h;
+
     auto& global = GlobalRenderData::get();
-    auto w = global.windowSize.w;
-    auto h = global.windowSize.h;
 
     VkRenderingAttachmentInfo colorAttachment = vk::attachmentInfo(
         app.drawImage.imageView, nullptr, VK_IMAGE_LAYOUT_GENERAL);
@@ -153,7 +156,8 @@ void PBRPass::render(VkCommandBuffer cmd) {
     push_constatns.materialsBind = sceneState.getMaterials().getBindPoint();
     push_constatns.cameraPosition = global.camera.position;
     push_constatns.lightsBind = sceneState.getLights().getBindPoint();
-    push_constatns.numLights = sceneState.getLights().getLogicalSize();
+    push_constatns.lightIndexBind = sceneState.getLighTile().getBindPoint();
+    push_constatns.tilesW = global.screenTileSize.w;
 
     vkCmdPushConstants(
         cmd, pipelineLayout,
