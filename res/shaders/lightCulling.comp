@@ -64,7 +64,11 @@ void main() {
     vec2 text = vec2(location) / screenSize;
     float depth = texture(samplers[depthBind], text).r;
 
-    depth = (0.5 * proj[3][2]) / (depth + 0.5 * proj[2][2] - 0.5);
+    vec4 d = vec4(0, 0, depth, 1);
+    d = invP * d;
+    d /= d.w;
+
+    depth = d.z;
 
     // Convert depth to uint so we can do atomic min and max comparisons between
     // the threads
@@ -96,8 +100,8 @@ void main() {
         frustumPlanes[1] = col4 - col1;
         frustumPlanes[2] = col4 - col2;
         frustumPlanes[3] = col4 + col2;
-        frustumPlanes[4] = vec4(0.0, 0.0, -1.0, -minDepth);
-        frustumPlanes[5] = vec4(0.0, 0.0, 1.0, maxDepth);
+        frustumPlanes[4] = vec4(0.0, 0.0, -1.0, minDepth);
+        frustumPlanes[5] = vec4(0.0, 0.0, 1.0, -maxDepth);
 
         for (int i = 0; i < 6; i++) {
             frustumPlanes[i] /= length(frustumPlanes[i].xyz);

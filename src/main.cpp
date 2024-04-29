@@ -38,8 +38,8 @@ class MyProgram : public vkr::Program {
             for (int y = -10; y < 10; y++) {
                 for (int x = -10; x < 10; x++) {
                     for (int z = -10; z < 10; z++) {
-                        lights.push_back(
-                            scene.addLight(glm::vec3(x, y, z) * 2.f, 2, 3));
+                        lights.push_back(scene.addLight(
+                            glm::vec3(x, y + 0.5, z) * 4.f, 4, 6));
                     }
                 }
             }
