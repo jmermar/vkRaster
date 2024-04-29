@@ -1,6 +1,6 @@
 # vkRaster
 
-[![](images/screenshot.png)](https://www.youtube.com/watch?v=b3FXtlTUmcE)
+[![](images/screenshot.jpeg)](https://www.youtube.com/watch?v=b3FXtlTUmcE)
 
 Simple Vulkan Renderer That I've began to work on. The purpose is to learn about the API and how to write efficient code on it.
 
@@ -16,7 +16,7 @@ Right now it can display unlit gltf scenes with a FPS camera, with the gltf scen
 | gltf scene loading | Implemented |
 | PBR Materials | Implemented |
 | Compute based culling | Only frustum culling |
-| Lighting | Forward rendering |
+| Lighting | Forward+ rendering |
 | Postprocessing | Not yet |
 
 # Build
