@@ -2,4 +2,4 @@
 build
 out
 
-res/models/tmp
+res/models/*

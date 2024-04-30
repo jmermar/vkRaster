@@ -9,7 +9,7 @@
 #include "vkPipelines.hpp"
 #include "vkSync.hpp"
 
-constexpr auto PRESENTATION = VK_PRESENT_MODE_FIFO_KHR;
+constexpr auto PRESENTATION = VK_PRESENT_MODE_IMMEDIATE_KHR;
 
 VkSemaphoreSubmitInfo semaphore_submit_info(VkPipelineStageFlags2 stageMask,
                                             VkSemaphore semaphore) {

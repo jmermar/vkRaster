@@ -85,12 +85,13 @@ void Scene::addInstance(ModelHandle model, const glm::mat4& transform) {
                                modelData.materials[ins.material]);
     }
 }
-Light Scene::addLight(const glm::vec3& position, float radius,
-                      float intensity) {
+Light Scene::addLight(const glm::vec3& position, float radius, float intensity,
+                      const glm::vec3& color) {
     LightPoint light;
     light.pos = position;
     light.radius = radius;
     light.intensity = intensity;
+    light.color = color;
 
     auto handle = lights.add(light);
 

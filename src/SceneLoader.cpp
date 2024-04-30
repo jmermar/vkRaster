@@ -68,7 +68,7 @@ SceneData loadScene(const std::string& path) {
     std::string err;
     std::string warn;
 
-    std::string fullPath(std::string(RESPATH "models/") + path);
+    std::string fullPath(path);
 
     bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, fullPath.c_str());
 

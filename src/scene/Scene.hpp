@@ -67,6 +67,8 @@ class Light {
         return *this;
     }
 
+    const glm::vec3& getPosition() { return data->get(handle)->pos; }
+
     void setPosition(const glm::vec3& position) {
         data->get(handle)->pos = position;
     }
@@ -111,7 +113,8 @@ class Scene {
     void update();
 
     void addInstance(ModelHandle model, const glm::mat4& transform);
-    Light addLight(const glm::vec3& position, float radius, float intensity);
+    Light addLight(const glm::vec3& position, float radius, float intensity,
+                   const glm::vec3& color = {1, 1, 1});
 
     inline void clear() {
         clearTextures();

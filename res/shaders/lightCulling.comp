@@ -3,12 +3,12 @@
 #extension GL_EXT_nonuniform_qualifier : require
 
 #define PIXELS_PER_TILE 16
-#define MAX_NUM_LIGHTS_PER_TILE 128
+#define MAX_NUM_LIGHTS_PER_TILE 1024
 
 struct Light {
     vec4 posAndIntensity;
+    vec3 color;
     float radius;
-    float pad[3];
 };
 
 layout(push_constant) uniform Constants {

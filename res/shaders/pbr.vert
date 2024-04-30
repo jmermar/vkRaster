@@ -38,8 +38,7 @@ void main() {
     material = drawParam.material;
 
     outWorldPos = (drawParam.transform * vec4(vPosition, 1.0f)).xyz;
-    outWorldNormal =
-        normalize(mat3(transpose(inverse(drawParam.transform))) * vNormal);
+    outWorldNormal = normalize(inverse(mat3(drawParam.transform)) * vNormal);
 
     gl_Position =
         PushConstants.projView * drawParam.transform * vec4(vPosition, 1.0f);

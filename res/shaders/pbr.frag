@@ -1,7 +1,7 @@
 #version 450
 #extension GL_EXT_nonuniform_qualifier : require
 
-#define MAX_NUM_LIGHTS_PER_TILE 128
+#define MAX_NUM_LIGHTS_PER_TILE 1024
 
 // output write
 layout(location = 0) out vec4 outColor;
@@ -24,8 +24,8 @@ struct Material {
 
 struct LightPoint {
     vec4 posAndIntensity;
+    vec3 color;
     float radius;
-    float pad[3];
 };
 
 layout(binding = 1, std430) readonly buffer Materials { Material materials[]; }
@@ -39,11 +39,14 @@ lightIndex[];
 
 layout(push_constant) uniform constants {
     mat4 projView;
+
     vec4 cameraPosition;
+
     uint lightsBind;
     uint drawParamsBind;
     uint materialsBind;
     uint lightIndexBind;
+
     uint numberOfTilesX;
 };
 
@@ -139,9 +142,9 @@ void main() {
     vec3 n = worldNormal;
 
     vec3 radiance = vec3(0);
-    uint offset = index * 128;
-    for (int i = 0;
-         i < 128 && lightIndex[lightIndexBind].lightIndex[offset + i] != -1;
+    uint offset = index * MAX_NUM_LIGHTS_PER_TILE;
+    for (int i = 0; i < MAX_NUM_LIGHTS_PER_TILE &&
+                    lightIndex[lightIndexBind].lightIndex[offset + i] != -1;
          i++) {
         LightPoint light =
             lights[lightsBind]
@@ -160,7 +163,7 @@ void main() {
         if (irradiance > 0.0) {
             vec3 brdf = brdfMicrofacet(lightDir, viewDir, n, metallic,
                                        roughness, baseCol, reflectance);
-            radiance += brdf * irradiance * vec3(1);
+            radiance += brdf * irradiance * light.color;
         }
     }
 

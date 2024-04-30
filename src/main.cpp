@@ -3,6 +3,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <random>
 
 #include "rendering/GlobalRenderData.hpp"
 #include "rendering/SceneState.hpp"
@@ -10,6 +11,8 @@
 using namespace std;
 
 constexpr uint32_t WIDTH = 1920, HEIGHT = 1080;
+
+inline float randFloat() { return (rand() % 1000) / 999.f; }
 
 class MyProgram : public vkr::Program {
    protected:
@@ -21,33 +24,26 @@ class MyProgram : public vkr::Program {
 
     vkr::Light cameraLight;
 
-    float intensity = 10;
-    float radius = 0;
+    std::string sceneName;
 
-    void init(bool sponza = false) {
-        scene.clear();
+    int numLights = 120;
+    float maxLightDist = 10;
+
+    void generateLights() {
         lights.clear();
-        camera.position = {0, 1, 0};
-        camera.target = {0, 0, 1};
+        for (int i = 0; i < numLights; i++) {
+            float x = randFloat();
+            float y = randFloat();
+            float z = randFloat();
 
-        if (sponza) {
-            vkr::TransformData transform;
-            scene.addInstance(scene.loadModel("tmp/sponza/sponza.glb"),
-                              transform.getTransform());
+            float r = 0.25 + 0.75 * randFloat();
+            float g = 0.25 + 0.75 * randFloat();
+            float b = 0.25 + 0.75 * randFloat();
+            glm::vec3 pos =
+                (glm::vec3(x, y, z) * 2.f - glm::vec3(1)) * maxLightDist;
 
-            for (int y = -10; y < 10; y++) {
-                for (int x = -10; x < 10; x++) {
-                    for (int z = -10; z < 10; z++) {
-                        lights.push_back(scene.addLight(
-                            glm::vec3(x, y + 0.5, z) * 4.f, 4, 6));
-                    }
-                }
-            }
-        } else {
-            vkr::TransformData transform;
-            transform.position.z = 5;
-            scene.addInstance(scene.loadModel("Duck.glb"),
-                              transform.getTransform());
+            float radius = 2.5 + randFloat() * 2;
+            lights.push_back(scene.addLight(pos, radius, 2, {r, g, b}));
         }
     }
 
@@ -70,53 +66,6 @@ class MyProgram : public vkr::Program {
             ImGui::Begin("Menu", &showMenu, 0);
 
             ImGui::LabelText("Scenes", "Scenes");
-            if (ImGui::Button("duck")) {
-                init();
-            }
-
-            if (ImGui::Button("Sponza")) {
-                init(true);
-            }
-
-            ImGui::LabelText("Light", "Scenes");
-            if (ImGui::Button("Add Light")) {
-                lights.push_back(
-                    scene.addLight(camera.position, radius, intensity));
-            }
-
-            ImGui::SliderFloat("Intensity", &intensity, 0, 20);
-            ImGui::SliderFloat("Distance", &radius, 0, 20);
-
-            ImGui::LabelText("Add Objects", "Scenes");
-
-            if (ImGui::Button("Add Duck")) {
-                vkr::TransformData transform;
-                transform.position = camera.position;
-                scene.addInstance(scene.loadModel("Duck.glb"),
-                                  transform.getTransform());
-            }
-
-            if (ImGui::Button("Add Car")) {
-                vkr::TransformData transform;
-                transform.scale = glm::vec3(45);
-                transform.position = camera.position;
-                scene.addInstance(scene.loadModel("ToyCar.glb"),
-                                  transform.getTransform());
-            }
-
-            if (ImGui::Button("Add Damaged Helmet")) {
-                vkr::TransformData transform;
-                transform.position = camera.position;
-                scene.addInstance(scene.loadModel("DamagedHelmet.glb"),
-                                  transform.getTransform());
-            }
-
-            if (ImGui::Button("Add Sponza")) {
-                vkr::TransformData transform;
-                transform.position = camera.position;
-                scene.addInstance(scene.loadModel("tmp/sponza/sponza.glb"),
-                                  transform.getTransform());
-            }
 
             vkr::GlobalRenderData::get().frustumCulling = false;
             static bool frustumEnabled = true;
@@ -124,17 +73,46 @@ class MyProgram : public vkr::Program {
 
             if (frustumEnabled)
                 vkr::GlobalRenderData::get().frustumCulling = true;
+
+            if (ImGui::InputInt("Number of lights", &numLights, 100, 1000)) {
+                generateLights();
+            }
+
+            if (ImGui::InputFloat("Light Max Distance", &maxLightDist, 100,
+                                  1000)) {
+                generateLights();
+            }
             ImGui::End();
         }
     }
 
     void onFrame(float deltaTime) override {
+        for (int i = 0; i < numLights; i++) {
+            auto& light = lights[i].getPosition();
+            auto n = light * (1.f / glm::length(light));
+            auto c = glm::vec3(1, 0, 0);
+
+            auto dir = glm::cross(n, c);
+
+            lights[i].setPosition(light + dir * 2.f * deltaTime);
+        }
+
         if (isKeyDown(SDL_SCANCODE_W)) {
             camera.position += camera.target * deltaTime * walkSpeed;
         }
 
         if (isKeyDown(SDL_SCANCODE_S)) {
             camera.position -= camera.target * deltaTime * walkSpeed;
+        }
+
+        if (isKeyDown(SDL_SCANCODE_A)) {
+            camera.position += glm::cross(camera.target, glm::vec3(0, -1, 0)) *
+                               deltaTime * walkSpeed;
+        }
+
+        if (isKeyDown(SDL_SCANCODE_D)) {
+            camera.position -= glm::cross(camera.target, glm::vec3(0, 1, 0)) *
+                               deltaTime * walkSpeed;
         }
 
         float sensitivity = 180.f;
@@ -148,10 +126,6 @@ class MyProgram : public vkr::Program {
 
         setCaptureMouse(!onMenu);
 
-        cameraLight.setPosition(camera.position);
-        cameraLight.setIntensity(intensity);
-        cameraLight.setRadius(radius);
-
         camera.w = getWindowSize().w;
         camera.h = getWindowSize().h;
 
@@ -164,21 +138,31 @@ class MyProgram : public vkr::Program {
     }
 
    public:
-    MyProgram() : vkr::Program({WIDTH, HEIGHT}, "vkRaster") {
+    MyProgram(const char* sceneName)
+        : vkr::Program({WIDTH, HEIGHT}, "vkRaster"), sceneName(sceneName) {
         camera.znear = 0.1;
         camera.zfar = 1000;
 
         camera.w = WIDTH;
         camera.h = HEIGHT;
 
-        cameraLight = scene.addLight(camera.position, radius, intensity);
-
-        init();
+        scene.clear();
+        lights.clear();
+        camera.position = {0, 1, 0};
+        camera.target = {0, 0, 1};
+        vkr::TransformData transform;
+        scene.addInstance(scene.loadModel(sceneName), transform.getTransform());
+        numLights = 1000;
+        generateLights();
     }
 };
 
-int main() {
-    MyProgram program;
+int main(int argc, char** args) {
+    if (argc < 2) {
+        cout << "Usage: " << args[0] << " <model path>" << endl;
+        return 0;
+    }
+    MyProgram program(args[1]);
     program.run();
 
     return 0;

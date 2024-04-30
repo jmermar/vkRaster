@@ -26,7 +26,7 @@ constexpr uint32_t CULLING_TYPE_ALL = 3;
 constexpr uint32_t MAX_DRAW_COMMANDS = 1024 * 1024 * 10;
 constexpr uint32_t MAX_LIGHTS = 1024 * 1024;
 
-constexpr uint32_t MAX_LIGHTS_PER_TILE = 128;
+constexpr uint32_t MAX_LIGHTS_PER_TILE = 1024;
 
 struct TextureData {
     vk::AllocatedImage image;
@@ -41,8 +41,8 @@ struct StorageBufferDesc {
 struct LightPoint {
     glm::vec3 pos;
     float intensity;
+    glm::vec3 color;
     float radius;
-    float pad[3];
 };
 
 class SceneState {
