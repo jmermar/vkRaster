@@ -1,5 +1,6 @@
 #include "SceneLoader.hpp"
 
+#include <filesystem>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
@@ -67,10 +68,20 @@ SceneData loadScene(const std::string& path) {
     tinygltf::TinyGLTF loader;
     std::string err;
     std::string warn;
+    std::string extension;
+    {
+        std::filesystem::path filePath = path;
+        extension = filePath.extension();
+    }
 
     std::string fullPath(path);
 
-    bool ret = loader.LoadBinaryFromFile(&model, &err, &warn, fullPath.c_str());
+    bool ret = false;
+    if (extension == ".glb") {
+        ret = loader.LoadBinaryFromFile(&model, &err, &warn, fullPath.c_str());
+    } else {
+        ret = loader.LoadASCIIFromFile(&model, &err, &warn, fullPath.c_str());
+    }
 
     if (!warn.empty()) {
         printf("Warn: %s\n", warn.c_str());
