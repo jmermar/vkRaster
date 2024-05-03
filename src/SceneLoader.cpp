@@ -71,7 +71,7 @@ SceneData loadScene(const std::string& path) {
     std::string extension;
     {
         std::filesystem::path filePath = path;
-        extension = filePath.extension();
+        extension = filePath.extension().string();
     }
 
     std::string fullPath(path);
