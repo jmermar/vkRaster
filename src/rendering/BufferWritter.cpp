@@ -13,7 +13,6 @@ BufferWritter::BufferWritter() : app(vk::vkApp::get()), system(app.system) {
 BufferWritter::~BufferWritter() {}
 
 void BufferWritter::writeImage(void* data, VkImage image, VkExtent3D size) {
-    auto device = system.device;
     auto allocator = system.allocator;
 
     size_t data_size = size.depth * size.width * size.height * 4;
@@ -40,7 +39,6 @@ void BufferWritter::writeImage(void* data, VkImage image, VkExtent3D size) {
 
 void BufferWritter::writeBuffer(void* data, int size, VkBuffer bufferToWrite) {
     const auto allocator = app.system.allocator;
-    const auto device = app.system.device;
 
     vk::AllocatedBuffer staging =
         vk::createBuffer(allocator, size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,

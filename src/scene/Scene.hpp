@@ -22,7 +22,7 @@ class Light {
     PackedArray<LightPoint>* data{};
     LightPointHandle handle{-1};
     Light(LightPointHandle handle, PackedArray<LightPoint>* data)
-        : handle(handle), data(data) {}
+        : data(data), handle(handle) {}
 
     inline void destroy() {
         if (data && handle >= 0) {

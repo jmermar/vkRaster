@@ -26,16 +26,19 @@ class StorageGPUVector {
 
    public:
     using Handle = uint32_t;
-    StorageGPUVector(VkBufferUsageFlags usage,
-                     GlobalBounds& bounds = *((GlobalBounds*)0),
+    StorageGPUVector(VkBufferUsageFlags usage, GlobalBounds* bounds = 0,
                      size_t initialSize = 0)
-        : usage(usage),
+        : app(vk::vkApp::get()),
+          bounds(bounds),
           dirty(true),
-          app(vk::vkApp::get()),
-          bounds(&bounds),
+          usage(usage),
           initialSize(initialSize) {
-        bind = this->bounds;
+        bind = this->bounds != 0;
     }
+
+    StorageGPUVector(VkBufferUsageFlags usage, GlobalBounds& bounds,
+                     size_t initialSize = 0)
+        : StorageGPUVector(usage, &bounds, initialSize) {}
     ~StorageGPUVector() { app.deletion.addBuffer(buffer); }
 
     void update() {

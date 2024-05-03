@@ -23,12 +23,15 @@ class GPUOnlyVector {
    public:
     using Handle = uint32_t;
     GPUOnlyVector(VkBufferUsageFlags usage, size_t size,
-                  GlobalBounds& bounds = *((GlobalBounds*)0))
-        : bounds(&bounds),
-          app(vk::vkApp::get()),
-          size(size),
+                  GlobalBounds* bounds = 0)
+        : app(vk::vkApp::get()),
+          bounds(bounds),
           usage(usage),
-          bind(&bounds) {}
+          bind(bounds != 0),
+          size(size) {}
+
+    GPUOnlyVector(VkBufferUsageFlags usage, size_t size, GlobalBounds& bounds)
+        : GPUOnlyVector(usage, size, &bounds){};
     ~GPUOnlyVector() {
         if (bind) {
             bounds->removeBind(bindPoint);

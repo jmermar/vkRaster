@@ -16,13 +16,15 @@ add_executable (${PROJECT_NAME} ${SRC}
 
 add_dependencies(${PROJECT_NAME} Shaders)
 
-set(COMPILE_WARNING_AS_ERROR ON)
 set_property(TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 20)
+
+target_compile_options(${PROJECT_NAME} PRIVATE "-Wall" "-Werror")
+
+
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/vma/include")
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../vendor/imgui")
 
 
@@ -32,4 +34,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     ${Vulkan_LIBRARIES}
     SDL3::SDL3
     vk-bootstrap::vk-bootstrap
+    vma
 )

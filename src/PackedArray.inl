@@ -44,11 +44,11 @@ class PackedArray {
     }
 
     void remove(Handle handle) {
-        if (handle > sparse.size()) {
+        if ((size_t)handle > sparse.size()) {
             return;
         } else {
             if (sparse[handle] >= 0) {
-                auto compactIndex = sparse[handle];
+                auto compactIndex = (size_t)sparse[handle];
                 // Update sparse part
                 sparse[handle] = -1;
                 free[handle] = firstFree;
@@ -68,7 +68,7 @@ class PackedArray {
     }
 
     T* get(Handle handle) {
-        if (handle > sparse.size() || sparse[handle] < 0) return 0;
+        if ((size_t)handle > sparse.size() || sparse[handle] < 0) return 0;
         return &data[sparse[handle]];
     }
 

@@ -4,3 +4,4 @@ set(SDL_VULKAN TRUE)
 
 add_subdirectory(SDL)
 add_subdirectory(vk-bootstrap)
+add_subdirectory(vma)

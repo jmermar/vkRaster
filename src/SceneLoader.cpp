@@ -137,7 +137,7 @@ SceneData loadScene(const std::string& path) {
         }
     }
 
-#undef GET_TEXTURE_IF_EXISTS(name)
+#undef GET_TEXTURE_IF_EXISTS
 
     // Load meshes
 
@@ -267,7 +267,7 @@ SceneData loadScene(const std::string& path) {
 
             // Calculate tangent and bitangent
 
-            for (int i = 0; i + 3 <= indexBuffer.size(); i += 3) {
+            for (size_t i = 0; i + 3 <= indexBuffer.size(); i += 3) {
                 glm::vec3 pos1 = vertexBuffer[indexBuffer[i]].position;
                 glm::vec3 pos2 = vertexBuffer[indexBuffer[i + 1]].position;
                 glm::vec3 pos3 = vertexBuffer[indexBuffer[i + 2]].position;

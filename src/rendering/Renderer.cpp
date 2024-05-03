@@ -37,16 +37,11 @@ Renderer::~Renderer() {
 void Renderer::render(glm::vec4 clearColor) {
     sceneState->update();
 
-    const auto& system = app.system;
-    auto device = system.device;
     vk::vkApp::FrameData* frameP;
     if (!app.renderBegin(&frameP)) {
         return;
     }
     auto& frame = *frameP;
-    auto renderFence = frame.renderFence;
-    auto renderSemaphore = frame.renderSemaphore;
-    auto swapchainSemaphore = frame.swapchainSemaphore;
     auto buffer = frame.buffer;
     vkCommands::transitionImage(buffer, app.depthImage.image,
                                 VK_IMAGE_LAYOUT_UNDEFINED,

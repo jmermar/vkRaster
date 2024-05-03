@@ -205,7 +205,6 @@ bool vkApp::renderBegin(FrameData** frameP) {
 
     auto& frame = frameData[frameCounter % FRAMES_IN_FLIGHT];
     auto renderFence = frame.renderFence;
-    auto renderSemaphore = frame.renderSemaphore;
     auto swapchainSemaphore = frame.swapchainSemaphore;
     auto buffer = frame.buffer;
     vkWaitForFences(system.device, 1, &renderFence, true, 10000000000000);
@@ -245,7 +244,6 @@ void vkApp::renderEnd() {
     auto renderSemaphore = frame.renderSemaphore;
     auto swapchainSemaphore = frame.swapchainSemaphore;
     auto swapchainImage = swapchain.images[swapchainImageIndex];
-    auto swapchainImageView = swapchain.imageViews[swapchainImageIndex];
     auto buffer = frame.buffer;
 
     vkCommands::transitionImage(buffer, drawImage.image,
@@ -318,7 +316,7 @@ void vkApp::initSwapchain(size_t w, size_t h) {
     swapchain.imageViews = vkbSwapchain.get_image_views().value();
 }
 void vkApp::initFrameData() {
-    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+    for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
         auto& frame = frameData[i];
 
         // Draw commands
@@ -375,7 +373,7 @@ void vkApp::destroySwapchain() {
         swapchain.swapchain = 0;
     }
 
-    for (int i = 0; i < swapchain.imageViews.size(); i++) {
+    for (size_t i = 0; i < swapchain.imageViews.size(); i++) {
         vkDestroyImageView(system.device, swapchain.imageViews[i], nullptr);
     }
 
@@ -383,7 +381,7 @@ void vkApp::destroySwapchain() {
     swapchain.images.clear();
 }
 void vkApp::destroyFrameData() {
-    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+    for (size_t i = 0; i < FRAMES_IN_FLIGHT; i++) {
         if (frameData[i].pool) {
             frameData[i].deletion.clear(system.device, system.allocator);
             if (frameData[i].renderSemaphore) {

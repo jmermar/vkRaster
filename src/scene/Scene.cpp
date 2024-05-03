@@ -40,7 +40,7 @@ ModelHandle Scene::loadModel(const std::string& path) {
         model.materials.push_back(SceneState::get().getMaterials().add(data));
     }
 
-#undef TRY_GET_TEXTURE(texture)
+#undef TRY_GET_TEXTURE
 
     for (auto& mesh : scene.meshes) {
         model.meshes.push_back(SceneState::get().allocateMesh(mesh));
@@ -64,7 +64,9 @@ void Scene::update() {
         std::span<LightPoint>(lights.getData(), lights.getSize()));
 }
 
-TextureHandle Scene::getTexture(const std::string& path) {}
+TextureHandle Scene::getTexture(const std::string& path) {
+    return (TextureHandle)0;
+}
 TextureHandle Scene::allocateTexture(void* data, Size size,
                                      TextureFormat format,
                                      VkImageUsageFlags usage,
@@ -103,7 +105,7 @@ Light Scene::addLight(const glm::vec3& position, float radius, float intensity,
 }
 void Scene::clearTextures() {
     auto data = textures.getData();
-    for (int i = 0; i < textures.getSize(); i++) {
+    for (size_t i = 0; i < textures.getSize(); i++) {
         sceneState.freeTexture(data[i]);
     }
 
