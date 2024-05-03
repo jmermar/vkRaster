@@ -17,11 +17,33 @@
 namespace vkr {
 SceneState* SceneState::instance = 0;
 
+void SceneState::loadDefaultTextures() {
+    uint8_t colorData[4] = {255, 255, 255, 0};
+    defaultColor = allocateTexture(
+        colorData, {.width = 1, .height = 1, .depth = 1},
+        VK_FORMAT_R8G8B8A8_UNORM, 0, GlobalBounds::SAMPLER_LINEAR);
+
+    uint8_t mrData[4] = {0, 255, 0, 0};
+    defaultMetallicRoughness = allocateTexture(
+        mrData, {.width = 1, .height = 1, .depth = 1}, VK_FORMAT_R8G8B8A8_UNORM,
+        0, GlobalBounds::SAMPLER_LINEAR);
+
+    uint8_t normalData[4] = {128, 128, 255, 0};
+    defaultNormal = allocateTexture(
+        normalData, {.width = 1, .height = 1, .depth = 1},
+        VK_FORMAT_R8G8B8A8_UNORM, 0, GlobalBounds::SAMPLER_LINEAR);
+}
+
 SceneState::SceneState()
     : app(vk::vkApp::get()), bufferWritter(BufferWritter::get()) {
     instance = this;
+    loadDefaultTextures();
 }
-SceneState::~SceneState() {}
+SceneState::~SceneState() {
+    freeTexture(defaultColor);
+    freeTexture(defaultNormal);
+    freeTexture(defaultMetallicRoughness);
+}
 void SceneState::update() {
     drawCommands.update();
     materials.update();

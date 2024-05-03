@@ -70,6 +70,16 @@ void PBRPass::buildPipeline() {
     desc.location = 3;
     pipelineBuilder.vertexInputAttributes.push_back(desc);
 
+    desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+    desc.offset = offsetof(Vertex, tangent);
+    desc.location = 4;
+    pipelineBuilder.vertexInputAttributes.push_back(desc);
+
+    desc.format = VK_FORMAT_R32G32B32_SFLOAT;
+    desc.offset = offsetof(Vertex, bitangent);
+    desc.location = 5;
+    pipelineBuilder.vertexInputAttributes.push_back(desc);
+
     pipeline = pipelineBuilder.buildPipeline(device);
 
     vkDestroyShaderModule(device, triangleFragShader, nullptr);

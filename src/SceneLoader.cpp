@@ -153,7 +153,6 @@ SceneData loadScene(const std::string& path) {
             std::vector<uint32_t> indexBuffer;
             std::vector<vkr::Vertex> vertexBuffer;
             const tinygltf::Primitive& glTFPrimitive = mesh.primitives[i];
-            uint32_t firstIndex = static_cast<uint32_t>(indexBuffer.size());
             uint32_t vertexStart = static_cast<uint32_t>(vertexBuffer.size());
             uint32_t indexCount = 0;
             // Vertices
@@ -264,6 +263,50 @@ SceneData loadScene(const std::string& path) {
                     default:
                         continue;
                 }
+            }
+
+            // Calculate tangent and bitangent
+
+            for (int i = 0; i + 3 <= indexBuffer.size(); i += 3) {
+                glm::vec3 pos1 = vertexBuffer[indexBuffer[i]].position;
+                glm::vec3 pos2 = vertexBuffer[indexBuffer[i + 1]].position;
+                glm::vec3 pos3 = vertexBuffer[indexBuffer[i + 2]].position;
+
+                glm::vec2 uv1 = vertexBuffer[indexBuffer[i]].uv;
+                glm::vec2 uv2 = vertexBuffer[indexBuffer[i + 1]].uv;
+                glm::vec2 uv3 = vertexBuffer[indexBuffer[i + 2]].uv;
+
+                glm::vec3 edge1 = pos2 - pos1;
+                glm::vec3 edge2 = pos3 - pos1;
+
+                glm::vec2 deltaUV1 = uv2 - uv1;
+                glm::vec2 deltaUV2 = uv3 - uv1;
+
+                glm::vec3 tangent, bitangent;
+                float f =
+                    1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+                tangent.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
+                tangent.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
+                tangent.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
+                tangent = glm::normalize(tangent);
+
+                bitangent.x =
+                    f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
+                bitangent.y =
+                    f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
+                bitangent.z =
+                    f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
+
+                bitangent = glm::normalize(bitangent);
+
+                vertexBuffer[indexBuffer[i]].tangent = tangent;
+                vertexBuffer[indexBuffer[i + 1]].tangent = tangent;
+                vertexBuffer[indexBuffer[i + 2]].tangent = tangent;
+
+                vertexBuffer[indexBuffer[i]].bitangent = bitangent;
+                vertexBuffer[indexBuffer[i + 1]].bitangent = bitangent;
+                vertexBuffer[indexBuffer[i + 2]].bitangent = bitangent;
             }
             primitives.push_back(
                 {retScene.meshes.size(), (size_t)mesh.primitives[i].material});

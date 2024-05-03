@@ -8,9 +8,9 @@ layout(location = 0) out vec4 outColor;
 
 layout(location = 0) in vec3 color;
 layout(location = 1) in vec2 uv;
-layout(location = 2) in vec3 worldNormal;
 layout(location = 3) in vec3 worldPos;
 layout(location = 4) in flat uint material;
+layout(location = 5) in mat3 TBN;
 
 layout(binding = 2) uniform sampler2D textures[];
 
@@ -138,8 +138,11 @@ void main() {
     float roughness = texture(textures[m.texRoughMet], uv).g;
     float metallic = texture(textures[m.texRoughMet], uv).r;
 
+    vec3 n = texture(textures[m.texNormal], uv).rgb;
+    n = n * 2.0 - 1.0;
+    n = normalize(TBN * n);
+
     vec3 viewDir = normalize(cameraPosition.xyz - worldPos);
-    vec3 n = worldNormal;
 
     vec3 radiance = vec3(0);
     uint offset = index * MAX_NUM_LIGHTS_PER_TILE;

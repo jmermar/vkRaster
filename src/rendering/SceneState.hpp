@@ -111,6 +111,12 @@ class SceneState {
 
     std::vector<MeshAllocationData> meshesData;
 
+    TextureData defaultColor{};
+    TextureData defaultNormal{};
+    TextureData defaultMetallicRoughness{};
+
+    void loadDefaultTextures();
+
     SceneState();
 
    public:
@@ -164,5 +170,11 @@ class SceneState {
     GlobalBounds& getBounds() { return bounds; }
 
     static SceneState& get() { return *instance; }
+
+    TextureData getDefaultColor() { return defaultColor; }
+    TextureData getDefaultNormal() { return defaultNormal; }
+    TextureData getDefaultMetallicRoughness() {
+        return defaultMetallicRoughness;
+    }
 };
 }  // namespace vkr

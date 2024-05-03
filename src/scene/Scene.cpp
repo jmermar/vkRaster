@@ -22,15 +22,19 @@ ModelHandle Scene::loadModel(const std::string& path) {
             TEXTURE_FORMAT_RGBA32, 0, GlobalBounds::SAMPLER_LINEAR));
     }
 
-#define TRY_GET_TEXTURE(texture)                                     \
+#define TRY_GET_TEXTURE(texture, def)                                \
     (texture >= 0 ? this->textures.get(textures[texture])->bindPoint \
-                  : (TextureBind)0)
+                  : def.bindPoint)
 
     for (auto& material : scene.materials) {
         SceneState::MaterialData data;
-        data.texColor = TRY_GET_TEXTURE(material.baseColortexture);
-        data.texNormal = TRY_GET_TEXTURE(material.normalTexture);
-        data.texRoughMet = TRY_GET_TEXTURE(material.metallicRoughnessTexture);
+        data.texColor = TRY_GET_TEXTURE(material.baseColortexture,
+                                        sceneState.getDefaultColor());
+        data.texNormal = TRY_GET_TEXTURE(material.normalTexture,
+                                         sceneState.getDefaultNormal());
+        data.texRoughMet =
+            TRY_GET_TEXTURE(material.metallicRoughnessTexture,
+                            sceneState.getDefaultMetallicRoughness());
         data.color = material.color;
 
         model.materials.push_back(SceneState::get().getMaterials().add(data));
