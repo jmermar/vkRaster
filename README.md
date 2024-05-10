@@ -1,6 +1,6 @@
 # Vulkan Renderer
 
-![](images/screenshot.jpeg)
+![](images/screenshot.png)
 
 Simple Vulkan Renderer That I've began to work on. The purpose is to learn about the API and how to write efficient code on it.
 

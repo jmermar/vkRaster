@@ -42,8 +42,8 @@ class MyProgram : public vkr::Program {
             glm::vec3 pos =
                 (glm::vec3(x, y, z) * 2.f - glm::vec3(1)) * maxLightDist;
 
-            float radius = 2.5 + randFloat() * 2;
-            lights.push_back(scene.addLight(pos, radius, 2, {r, g, b}));
+            float radius = 5;
+            lights.push_back(scene.addLight(pos, radius, 3, {r, g, b}));
         }
     }
 

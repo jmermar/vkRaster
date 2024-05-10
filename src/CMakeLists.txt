@@ -22,7 +22,7 @@ if(Win32)
     target_compile_options(${PROJECT_NAME} PRIVATE "/warnaserror")
 elseif(UNIX)
     target_compile_options(${PROJECT_NAME} PRIVATE "-Wall" "-Werror")
-endif(UNIX)
+endif(Win32)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_FORCE_DEPTH_ZERO_TO_ONE)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
